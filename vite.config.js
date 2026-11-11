@@ -8,4 +8,4 @@ export default defineConfig({
     emptyOutDir: true,
     target: 'esnext'
   }
-
+})
