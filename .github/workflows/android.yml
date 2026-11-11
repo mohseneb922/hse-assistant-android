@@ -53,10 +53,16 @@ jobs:
           from PIL import Image
           from pathlib import Path
 
-          img = Image.open("file000000003d9481f482c05f80ca212044.jpg").convert("RGBA")
+          img = Image.open("file_000000003d9481f482c05f80ca212044.jpg").convert("RGBA")
+
           w, h = img.size
           side = min(w, h)
-          img = img.crop(((w-side)//2, (h-side)//2, (w+side)//2, (h+side)//2))
+          img = img.crop((
+              (w-side)//2,
+              (h-side)//2,
+              (w+side)//2,
+              (h+side)//2
+          ))
 
           sizes = {
               "mipmap-mdpi": 48,
@@ -71,14 +77,21 @@ jobs:
           for folder, size in sizes.items():
               path = base / folder
               path.mkdir(parents=True, exist_ok=True)
-              icon = img.resize((size, size), Image.Resampling.LANCZOS)
+
+              icon = img.resize(
+                  (size, size),
+                  Image.Resampling.LANCZOS
+              )
+
               icon.save(path / "ic_launcher.png")
               icon.save(path / "ic_launcher_round.png")
 
           adaptive = base / "mipmap-anydpi-v26"
+
           if adaptive.exists():
               (adaptive / "ic_launcher.xml").unlink(missing_ok=True)
               (adaptive / "ic_launcher_round.xml").unlink(missing_ok=True)
+
           PY
 
       - name: Build APK
