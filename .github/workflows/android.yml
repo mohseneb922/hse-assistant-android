@@ -30,7 +30,6 @@ jobs:
         with:
           packages: 'platform-tools'
 
-
       - name: Install Android SDK packages
         run: |
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
@@ -43,7 +42,11 @@ jobs:
 
       - name: Add Android platform
         run: npx cap add android
-- name: Generate Android App Icons
+
+      - name: Sync Android project
+        run: npx cap sync android
+
+      - name: Generate Android App Icons
         run: |
           python -m pip install Pillow
           python - <<'PY'
@@ -53,8 +56,7 @@ jobs:
           img = Image.open("icon.png").convert("RGBA")
           w, h = img.size
           side = min(w, h)
-          img = img.crop(((w-side)//2, (h-side)//2,
-                          (w+side)//2, (h+side)//2))
+          img = img.crop(((w-side)//2, (h-side)//2, (w+side)//2, (h+side)//2))
 
           sizes = {
               "mipmap-mdpi": 48,
@@ -79,7 +81,6 @@ jobs:
               (adaptive / "ic_launcher_round.xml").unlink(missing_ok=True)
           PY
 
-
       - name: Build APK
         run: |
           cd android
@@ -91,4 +92,3 @@ jobs:
         with:
           name: HSE-Assistant-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
-
