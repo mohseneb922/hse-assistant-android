@@ -196,10 +196,15 @@ window.HSE_FILES = {
   async exportJson(name, payload) { return this.exportFile(name, payload, 'application/json'); }
 };
 
-import('./app.js').catch(error => {
-  console.error('Application loading failed:', error);
+const script = document.createElement('script');
+script.src = './app.js';
+
+script.onerror = () => {
+  console.error('Application script failed to load');
   const boot = document.getElementById('hse-boot');
   if (boot) {
-    boot.textContent = 'بارگذاری برنامه ناموفق بود. لطفاً برنامه را دوباره اجرا کنید.';
+    boot.textContent = 'بارگذاری برنامه ناموفق بود.';
   }
-});
+};
+
+document.body.appendChild(script);
