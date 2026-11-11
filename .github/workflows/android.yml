@@ -53,7 +53,8 @@ jobs:
           from PIL import Image
           from pathlib import Path
 
-          img = Image.open("icon.png").convert("RGBA")
+         img = Image.open("file000000003d9481f482c05f80ca212044.jpg").convert("RGBA")
+
           w, h = img.size
           side = min(w, h)
           img = img.crop(((w-side)//2, (h-side)//2, (w+side)//2, (h+side)//2))
