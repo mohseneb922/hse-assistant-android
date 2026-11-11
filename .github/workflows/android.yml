@@ -43,9 +43,42 @@ jobs:
 
       - name: Add Android platform
         run: npx cap add android
+- name: Generate Android App Icons
+        run: |
+          python -m pip install Pillow
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
 
-      - name: Sync Android project
-        run: npx cap sync android
+          img = Image.open("icon.png").convert("RGBA")
+          w, h = img.size
+          side = min(w, h)
+          img = img.crop(((w-side)//2, (h-side)//2,
+                          (w+side)//2, (h+side)//2))
+
+          sizes = {
+              "mipmap-mdpi": 48,
+              "mipmap-hdpi": 72,
+              "mipmap-xhdpi": 96,
+              "mipmap-xxhdpi": 144,
+              "mipmap-xxxhdpi": 192
+          }
+
+          base = Path("android/app/src/main/res")
+
+          for folder, size in sizes.items():
+              path = base / folder
+              path.mkdir(parents=True, exist_ok=True)
+              icon = img.resize((size, size), Image.Resampling.LANCZOS)
+              icon.save(path / "ic_launcher.png")
+              icon.save(path / "ic_launcher_round.png")
+
+          adaptive = base / "mipmap-anydpi-v26"
+          if adaptive.exists():
+              (adaptive / "ic_launcher.xml").unlink(missing_ok=True)
+              (adaptive / "ic_launcher_round.xml").unlink(missing_ok=True)
+          PY
+
 
       - name: Build APK
         run: |
