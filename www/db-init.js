@@ -199,12 +199,19 @@ window.HSE_FILES = {
 const script = document.createElement('script');
 script.src = './app.js';
 
+
 script.onerror = () => {
-  console.error('Application script failed to load');
+  console.error('Application script failed to load:', script.src);
   const boot = document.getElementById('hse-boot');
   if (boot) {
-    boot.textContent = 'بارگذاری برنامه ناموفق بود.';
+    boot.style.display = 'flex';
+    boot.textContent = 'خطا در بارگذاری فایل app.js: ' + script.src;
   }
 };
 
+script.onload = () => {
+  console.log('app.js loaded successfully');
+};
+
+document.body.appendChild(script);
 document.body.appendChild(script);
