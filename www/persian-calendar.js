@@ -4,7 +4,7 @@ const en=new Intl.DateTimeFormat('en-US-u-ca-persian-nu-latn',{year:'numeric',mo
 const months=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
 const weekdays=['ش','ی','د','س','چ','پ','ج'];
 const pad=n=>String(n).padStart(2,'0');
-const faNum=s=>String(s).replace(/\\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[+d]);
+const faNum=s=>String(s).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[+d]);
 const isoDate=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 function parts(d,fmt=en){const o={};fmt.formatToParts(d).forEach(p=>{if(p.type!=='literal')o[p.type]=+p.value});return {y:o.year,m:o.month,d:o.day}}
 function jparts(iso){if(!iso)return null;const m=String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return null;const d=new Date(+m[1],+m[2]-1,+m[3],12);if(!Number.isFinite(d.getTime()))return null;return parts(d)}
