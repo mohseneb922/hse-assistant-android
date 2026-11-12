@@ -8,7 +8,7 @@ const isoDate=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 function parts(d,fmt=en){const o={};fmt.formatToParts(d).forEach(p=>{if(p.type!=='literal')o[p.type]=+p.value});return {y:o.year,m:o.month,d:o.day}}
 function jparts(iso){if(!iso)return null;const m=String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return null;const d=new Date(+m[1],+m[2]-1,+m[3],12);if(!Number.isFinite(d.getTime()))return null;return parts(d)}
 function gfromJ(y,m,d){const a=new Date(y+621,2,18,12);let start=null;for(let i=-5;i<=8;i++){const x=new Date(a);x.setDate(a.getDate()+i);const p=parts(x);if(p.y===y&&p.m===1&&p.d===1){start=x;break}}if(!start)return null;const n=m<=7?(m-1)*31:186+(m-7)*30;const out=new Date(start);out.setDate(start.getDate()+n+d-1);return out}
-function format(iso,kind='date'){if(!iso)return '';const s=String(iso),p=jparts(s);if(!p)return s;const date=p.y+'/'+pad(p.m)+'/'+pad(p.d);if(kind==='month'){const mm=s.match(/^(\\d{4})-(\\d{2})$/);return mm?mm[1]+'/'+mm[2]:s;}if(kind==='datetime-local'){const tm=s.match(/T(\d{2}:\d{2})/);return date+(tm?' – '+tm[1]:'')}return date}
+function format(iso,kind='date'){if(!iso)return '';const s=String(iso);if(kind==='month'){const mm=s.match(/^(\\d{4})-(\\d{2})$/);return mm?mm[1]+'/'+pad(+mm[2]):s}const p=jparts(s);if(!p)return s;const date=p.y+'/'+pad(p.m)+'/'+pad(p.d);if(kind==='datetime-local'){const tm=s.match(/T(\d{2}:\d{2})/);return date+(tm?' – '+tm[1]:'')}return date}
 function parse(input,kind='date'){if(!input)return '';const s=String(input);if(kind==='month'){const m=s.match(/^(\d{4})-(\d{2})$/);return m?s:''}return s}
 function monthStart(y,m){return gfromJ(y,m,1)}
 function jalaliMonthFromGregorian(iso){const p=jparts(iso);return p?String(p.y)+'-'+pad(p.m):''}
