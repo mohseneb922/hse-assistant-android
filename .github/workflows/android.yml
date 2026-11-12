@@ -101,7 +101,7 @@ jobs:
                   }
                   """
           if re.search(r"buildTypes\s*\{", source):
-              source, count = re.subn(r"buildTypes\\s*\\{", lambda m: m.group(0) + "\n                  " + debug_signing, source, count=1)
+              source, count = re.subn(r"buildTypes\s*\{", lambda m: m.group(0) + "\n                  " + debug_signing, source, count=1)
           else:
               raise SystemExit("Could not find Android buildTypes block")
 
