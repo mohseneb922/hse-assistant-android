@@ -1,3 +1,4 @@
+
 name: Build HSE Android APK
 
 on:
@@ -39,6 +40,14 @@ jobs:
 
       - name: Build web application
         run: npm run build
+
+      - name: Copy application script
+        run: |
+          test -f www/app.js
+          mkdir -p dist
+          cp www/app.js dist/app.js
+          test -s dist/app.js
+          echo "app.js successfully copied to dist"
 
       - name: Add Android platform
         run: npx cap add android
@@ -91,7 +100,6 @@ jobs:
           if adaptive.exists():
               (adaptive / "ic_launcher.xml").unlink(missing_ok=True)
               (adaptive / "ic_launcher_round.xml").unlink(missing_ok=True)
-
           PY
 
       - name: Build APK
