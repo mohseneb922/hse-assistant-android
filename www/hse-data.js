@@ -171,6 +171,7 @@ function normalizeCatalog(items, fallback, key = "name") {
 }
 
 export function migrateState(input) {
+  const legacySchema = !(input && input.cfg && Number(input.cfg.version) >= 1);
   const state = input && typeof input === "object" && !Array.isArray(input)
     ? clone(input)
     : {};
@@ -224,7 +225,7 @@ export function migrateState(input) {
 
   // The former "aud" screen was a manual event log, not an audit workflow.
   // Preserve those records under logs and reserve aud for real audit records.
-  if (state.aud.length) {
+  if (legacySchema && state.aud.length) {
     const knownLogIds = new Set(state.logs.map(record => record?.id).filter(Boolean));
     state.aud.forEach((record, index) => {
       if (!record?.id || !knownLogIds.has(record.id)) {
@@ -239,7 +240,7 @@ export function migrateState(input) {
   }
 
   // Split the former combined meeting/drill register without deleting history.
-  if (state.mn.length) {
+  if (legacySchema && state.mn.length) {
     for (const record of state.mn) {
       const isDrill = String(record?.ty || "").includes("مانور");
       const target = isDrill ? state.drill : state.meeting;
