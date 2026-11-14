@@ -98,6 +98,14 @@ test("migration is idempotent for an already migrated state", () => {
   assert.deepEqual(twice, once);
 });
 
+test("safety equipment records survive migration and backup merging", () => {
+  const original = migrateState({ eqp: [{ id: "eq-1", name: "آشکارساز گاز", nextInspection: "2027-01-01" }] });
+  assert.equal(original.eqp.length, 1);
+  assert.equal(original.eqp[0].id, "eq-1");
+  const merged = mergeBackupState(original, { eqp: [{ id: "eq-2", name: "دستگاه تنفسی" }] });
+  assert.deepEqual(merged.eqp.map(item => item.id), ["eq-1", "eq-2"]);
+});
+
 
 test("backup merge preserves local records and adds imported records without duplicates", () => {
   const current = {
