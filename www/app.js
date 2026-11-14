@@ -370,7 +370,7 @@ function readIncidentAttachment(file){
   return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('خواندن فایل ناموفق بود'));reader.readAsDataURL(file)});
 }
 async function compressIncidentAttachment(file){
-  if(!file.type.startsWith('image/'))return {data:await readIncidentAttachment(file),mimeType:file.type||'application/pdf',name:file.name,size:file.size};
+  const mimeType=file.type&&file.type!=='application/octet-stream'?file.type:(/\.(jpe?g)$/i.test(file.name)?'image/jpeg':/\.png$/i.test(file.name)?'image/png':/\.webp$/i.test(file.name)?'image/webp':'application/pdf');if(!mimeType.startsWith('image/'))return {data:await readIncidentAttachment(file),mimeType: mimeType,name:file.name,size:file.size};
   const source=URL.createObjectURL(file);
   try{const image=await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('تصویر قابل خواندن نیست'));img.src=source});const scale=Math.min(1,1600/Math.max(image.width,image.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);const data=canvas.toDataURL('image/jpeg',.78);return {data:data,mimeType:'image/jpeg',name:file.name.replace(/\.[^.]+$/,'')+'.jpg',size:Math.ceil((data.length-data.indexOf(',')-1)*.75)}}finally{URL.revokeObjectURL(source)}
 }
@@ -388,7 +388,7 @@ function viewIncidentSocialSecurityAttachments(id){
   showRep('پیوست‌های گزارش حادثه',content,true);
 }
 function removeIncidentSocialSecurityAttachment(id,attachmentId){
-  const incident=S.inc.find(x=>String(x.id)===String(id));if(!incident)return;cf('این پیوست از گزارش حادثه حذف شود؟',async()=>{const previous=incident.ssAttachments||[];incident.ssAttachments=previous.filter(a=>String(a.id)!==String(attachmentId));try{await sv();viewIncidentSocialSecurityAttachments(id);R()}catch(error){incident.ssAttachments=previous;nt('حذف پیوست ذخیره نشد.')}},'حذف پیوست');
+  const incident=S.inc.find(x=>String(x.id)===String(id));if(!incident)return;cf('این پیوست از گزارش حادثه حذف شود؟',async()=>{const previous=incident.ssAttachments||[];incident.ssAttachments=previous.filter(a=>String(a.id)!==String(attachmentId));try{await sv();nt('پیوست حذف شد.')}catch(error){incident.ssAttachments=previous;nt('حذف پیوست ذخیره نشد.')}},'حذف پیوست');
 }
 function normalizeIncSearch(v){return String(v??'').toLowerCase().replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[٠-٩]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[Number(d)]).replace(/[0-9]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[Number(d)]).trim()}
 function filterIncRecords(value){const q=normalizeIncSearch(value);let shown=0;document.querySelectorAll('#incRecords .inc-record').forEach(el=>{const match=!q||normalizeIncSearch(el.dataset.search).includes(q);el.style.display=match?'':'none';if(match)shown++});const count=document.getElementById('incSearchCount');if(count)count.textContent=shown+' مورد از '+S.inc.length+' مورد';const empty=document.getElementById('incSearchEmpty');if(empty)empty.style.display=shown?'none':''}
@@ -658,12 +658,12 @@ async function saveIns(){
   newFailed.forEach(x=>S.act.unshift({id:uid(),createdAt:T,src:'بازرسی',sid:record.id,s:(template.name+' / '+depName+': '+x[0]),cause:'عدم انطباق در بازرسی',ac:'رفع مورد و بررسی مجدد',r:'',d:'',st:'باز',eff:'در انتظار بررسی'}));
   editingInspectionId=null;await sv();R();if(newFailed.length)alert(newFailed.length+' اقدام اصلاحی جدید مرتبط با این بازرسی ایجاد شد');
 }
-const TB=[['home','خانه'],['inc','حادثه و شبه‌حادثه'],['gz','گزارش رسمی'],['bm','گزارش بیمه'],['tr','آموزش‌ها'],['sg','تابلوها و فرم‌ها'],['forms','فرم‌های خام و چاپی'],['ins','بازرسی'],['act','اقدامات اصلاحی'],['ext','کپسول‌ها'],['ert','گروه واکنش'],['fa','راهنمای کمک‌های اولیه'],['fac','ثبت اقدامات کمک‌های اولیه'],['kit','موجودی جعبه کمک‌های اولیه'],['bk','پشتیبان'],['pr','پرسنل'],['md','طب کار'],['cr','جرثقیل و لیفتراک'],['pl','آلاینده‌سنجی']];
+const TB=[['home','خانه'],['inc','حادثه و شبه‌حادثه'],['bm','گزارش بیمه'],['tr','آموزش‌ها'],['sg','تابلوها و فرم‌ها'],['forms','فرم‌های خام و چاپی'],['ins','بازرسی'],['act','اقدامات اصلاحی'],['ext','کپسول‌ها'],['ert','گروه واکنش'],['fa','راهنمای کمک‌های اولیه'],['fac','ثبت اقدامات کمک‌های اولیه'],['kit','موجودی جعبه کمک‌های اولیه'],['bk','پشتیبان'],['pr','پرسنل'],['md','طب کار'],['cr','جرثقیل و لیفتراک'],['pl','آلاینده‌سنجی']];
 TB.push(['mc','مواد شیمیایی'],['pw','مجوز کار'],['rk','ارزیابی ریسک'],['drill','مانورها'],['meeting','جلسات HSE'],['pe','تحویل PPE'],['wm','پسماند'],['ct','پیمانکاران'],['kp','شاخص‌ها'],['sr','جستجو'],['rq','درخواست و اعلام خرابی']);
 TB.push(['alerts','هشدارها و یادآوری‌ها'],['eqp','مدیریت تجهیزات ایمنی'],['reports','گزارش‌های مدیریتی و Excel']);
 TB.push(['cmp','صلاحیت‌ها'],['cw','نیروهای پیمانکار'],['acc','فرم‌های حراست و تردد'],['emg','شرایط اضطراری'],['inv','تحقیق حادثه'],['hyg','بهداشت حرفه‌ای'],['erg','ارگونومی'],['asn','انتصاب'],['doc','مدارک HSE'],['aud','ممیزی'],['logs','سوابق رویداد قدیمی'],['cfg','تعاریف پایه']);
 const QT=['home','alerts','ins','inc','rq','act'];
-const GR=[['روزانه',['rq','ins','inc','act','pw','acc']],['گزارش‌ها',['gz','bm','kp','inv','aud','logs']],['فرم‌ها و مستندات',['forms']],['افراد',['pr','md','tr','pe','ert','fa','fac','cmp','cw','asn']],['تجهیزات',['eqp','ext','cr','kit','sg']],['مواد و محیط',['mc','pl','wm','rk','hyg','erg']],['سازمان',['drill','meeting','ct','emg','doc']],['مدیریت و ابزار',['alerts','reports','cfg','sr','bk']]];
+const GR=[['روزانه',['rq','ins','inc','act','pw','acc']],['گزارش‌ها',['bm','kp','inv','aud','logs']],['فرم‌ها و مستندات',['forms']],['افراد',['pr','md','tr','pe','ert','fa','fac','cmp','cw','asn']],['تجهیزات',['eqp','ext','cr','kit','sg']],['مواد و محیط',['mc','pl','wm','rk','hyg','erg']],['سازمان',['drill','meeting','ct','emg','doc']],['مدیریت و ابزار',['alerts','reports','cfg','sr','bk']]];
 function go(k){$('#md').style.display='none';tab=k;R();scrollTo(0,0)}
 function menu(){const m=$('#md');m.innerHTML=`<div class='sh'><h3>همه بخش‌ها</h3>${GR.map(g=>`<div class='mu' style='margin-top:10px'>${g[0]}</div><div class='row'>${g[1].map(k=>`<button class='b g' data-k='${k}' onclick='go(this.dataset.k)'>${TB.find(t=>t[0]==k)[1]}</button>`).join('')}</div>`).join('')}<div class='row'><button class='b' id='xm'>بستن</button></div></div>`;m.style.display='flex';$('#xm').onclick=()=>{m.style.display='none'}}
 if(S.pin)lock();
