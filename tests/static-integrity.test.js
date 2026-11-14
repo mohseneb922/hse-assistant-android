@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 const app = await readFile(new URL('../www/app.js', import.meta.url), 'utf8');
 const db = await readFile(new URL('../www/db-init.js', import.meta.url), 'utf8');
+const data = await readFile(new URL('../www/hse-data.js', import.meta.url), 'utf8');
 const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
 
 function listFrom(source, expression) {
@@ -21,13 +22,14 @@ const dbModules = listFrom(db, /const MODULE_KEYS = \[(.*?)\];/s);
 });
 
 test('all extended HSE registers are represented in the UI and backup validator', () => {
-  const extended = ['cmp','cw','acc','emg','inv','hyg','erg','asn','fac','doc','aud'];
-  const backupLine = app.match(/function validBackup\(x\).*?\n/)[0];
+  const extended = ['cmp','cw','acc','emg','inv','hyg','erg','asn','fac','doc','aud','logs','kit','drill','meeting'];
+  const backupRegistry = data.match(/const ARRAY_KEYS = \[(.*?)\];/s)?.[1] || '';
+  assert.match(app, /function validBackup\(x\)\{return window\.HSE_VALIDATE_BACKUP_STATE/);
   for (const id of extended) {
     assert.ok(app.includes(`M.${id}=`), `missing form definition: ${id}`);
     assert.ok(app.includes(`${id}:()=>`), `missing page: ${id}`);
     assert.ok(app.includes(`['${id}',`), `missing navigation item: ${id}`);
-    assert.ok(backupLine.includes(`'${id}'`), `missing backup validation key: ${id}`);
+    assert.ok(backupRegistry.includes(`"${id}"`), `missing backup validation key: ${id}`);
   }
 });
 
