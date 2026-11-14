@@ -1,12 +1,20 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite';
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
+import { Printer } from '@bcyesil/capacitor-plugin-printer';
+import { migrateState, validateBackupState, mergeBackupState } from './hse-data.js';
 
-window.HSE_DB_MODE = Capacitor.isNativePlatform() ? 'native-sqlite' : 'browser-local';
+window.HSE_MIGRATE_STATE = migrateState;
+window.HSE_VALIDATE_BACKUP_STATE = validateBackupState;
+window.HSE_MERGE_BACKUP_STATE = mergeBackupState;
+
+window.HSE_IS_NATIVE = Capacitor.isNativePlatform();
+window.HSE_DB_MODE = window.HSE_IS_NATIVE ? 'native-sqlite' : 'browser-local';
+window.HSE_APP = App;
+window.HSE_PRINTER = Printer;
 const DB_NAME = 'hse_assistant';
 const STORAGE_KEY = 'hse_personal_v1';
-const MODULE_KEYS = ['inc','act','ext','ins','ert','gz','tr','bm','pr','md','cr','pl','mc','pw','mn','rk','pe','wm','ct','rq','cmp','cw','acc','emg','inv','hyg','erg','asn','fac','doc','aud'];
+const MODULE_KEYS = ['inc','act','ext','ins','ert','gz','tr','bm','pr','md','cr','pl','mc','pw','mn','rk','pe','wm','ct','rq','cmp','cw','acc','emg','inv','hyg','erg','asn','fac','doc','aud','logs','kit','drill','meeting','eqp'];
 const localDate = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -108,14 +116,16 @@ async function setupSQLite() {
   `);
 
   const stateResult = await db.query('SELECT payload FROM app_state WHERE id = 1');
-  let initialState = stateResult.values?.length ? safeJson(stateResult.values[0].payload) : null;
+  const storedState = stateResult.values?.length ? safeJson(stateResult.values[0].payload) : null;
   const persistedModules = new Map();
-  if (!initialState) {
-    // One-time migration from the previous browser-based version.
-    initialState = safeJson(localStorage.getItem(STORAGE_KEY));
-    if (initialState) await persistState(db, initialState, persistedModules, true);
-  }
-  if (initialState && typeof initialState === 'object' && !Array.isArray(initialState)) {
+  let initialState = storedState || safeJson(localStorage.getItem(STORAGE_KEY));
+  const migratedState = migrateState(initialState || {});
+  const migrationChanged = !initialState || JSON.stringify(migratedState) !== JSON.stringify(initialState);
+  initialState = migratedState;
+  if (migrationChanged) {
+    // Persist schema/data migrations atomically, including new module indexes.
+    await persistState(db, initialState, persistedModules, true);
+  } else {
     for (const module of MODULE_KEYS) {
       persistedModules.set(module, JSON.stringify(Array.isArray(initialState[module]) ? initialState[module] : []));
     }
@@ -123,8 +133,9 @@ async function setupSQLite() {
   return {
     initialState,
     async saveState(payload) {
-      const state = safeJson(payload);
-      if (!state || typeof state !== 'object' || Array.isArray(state)) throw new Error('Invalid application state');
+      const parsed = safeJson(payload);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Invalid application state');
+      const state = migrateState(parsed);
       await persistState(db, state, persistedModules, false);
     },
     async getCounts() {
@@ -180,38 +191,37 @@ try {
   window.HSE_DB_ERROR = String(error?.message || error);
 }
 
-window.HSE_FILES = {
+const HSEFileSaver = registerPlugin('HSEFileSaver');
+window.HSE_FILES = Capacitor.isNativePlatform() ? {
   async exportFile(name, payload, mimeType = 'application/octet-stream') {
-    if (!Capacitor.isNativePlatform()) throw new Error('Native file export unavailable');
-    const saved = await Filesystem.writeFile({
-      path: name,
-      data: payload,
-      directory: Directory.Documents,
-      encoding: Encoding.UTF8,
-      recursive: true
+    const base64 = btoa(unescape(encodeURIComponent(String(payload))));
+    const saved = await HSEFileSaver.saveFile({
+      fileName: name,
+      mimeType,
+      data: base64
     });
-    await Share.share({ title: 'دستیار HSE', text: `فایل خروجی (${mimeType})`, url: saved.uri, dialogTitle: 'ذخیره یا ارسال فایل' });
+    if (saved?.cancelled) return saved;
+    if (!saved?.success) throw new Error('File save was not completed');
     return saved;
   },
   async exportJson(name, payload) { return this.exportFile(name, payload, 'application/json'); }
-};
+} : {};
 
-const script = document.createElement('script');
-script.src = './app.js';
-
-
-script.onerror = () => {
-  console.error('Application script failed to load:', script.src);
+const calendarScript = document.createElement('script');
+calendarScript.src = './persian-calendar.js';
+calendarScript.onerror = () => {
   const boot = document.getElementById('hse-boot');
-  if (boot) {
-    boot.style.display = 'flex';
-    boot.textContent = 'خطا در بارگذاری فایل app.js: ' + script.src;
-  }
+  if (boot) { boot.style.display = 'flex'; boot.textContent = 'خطا در بارگذاری تقویم شمسی؛ برنامه اجرا نشد.'; }
 };
-
-script.onload = () => {
-  console.log('app.js loaded successfully');
+calendarScript.onload = () => {
+  const script = document.createElement('script');
+  script.src = './app.js';
+  script.onerror = () => {
+    console.error('Application script failed to load:', script.src);
+    const boot = document.getElementById('hse-boot');
+    if (boot) { boot.style.display = 'flex'; boot.textContent = 'خطا در بارگذاری فایل app.js: ' + script.src; }
+  };
+  script.onload = () => console.log('app.js loaded successfully');
+  document.body.appendChild(script);
 };
-
-document.body.appendChild(script);
-document.body.appendChild(script);
+document.body.appendChild(calendarScript);

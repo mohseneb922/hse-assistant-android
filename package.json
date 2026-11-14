@@ -1,6 +1,6 @@
 {
   "name": "hse-assistant-android",
-  "version": "1.1.0",
+  "version": "1.2.4",
   "private": true,
   "description": "Offline-first Android HSE assistant",
   "scripts": {
@@ -9,15 +9,16 @@
     "android": "cap open android",
     "apk:debug": "npm run build && cap sync android && cd android && gradlew assembleDebug",
     "cap:add": "cap add android",
-    "check": "node --check www/app.js && node --check www/db-init.js && node --check vite.config.js",
+    "check": "node --check www/app.js && node --check www/db-init.js && node --check www/hse-data.js && node --check vite.config.js",
     "test": "node --test"
   },
   "dependencies": {
     "@capacitor-community/sqlite": "^6.0.2",
     "@capacitor/android": "^6.2.0",
+    "@capacitor/app": "^6.0.2",
     "@capacitor/core": "^6.2.0",
-    "@capacitor/filesystem": "^6.0.3",
-    "@capacitor/share": "^6.0.3"
+    "@bcyesil/capacitor-plugin-printer": "0.0.5",
+    "@odion-cloud/capacitor-mediastore": "^1.0.21"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.2.0",
