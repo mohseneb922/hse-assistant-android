@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
@@ -9,6 +10,7 @@ window.HSE_MIGRATE_STATE = migrateState;
 window.HSE_VALIDATE_BACKUP_STATE = validateBackupState;
 
 window.HSE_DB_MODE = Capacitor.isNativePlatform() ? 'native-sqlite' : 'browser-local';
+window.HSE_APP = App;
 window.HSE_PRINTER = Printer;
 const DB_NAME = 'hse_assistant';
 const STORAGE_KEY = 'hse_personal_v1';
