@@ -59,6 +59,7 @@ test('Capacitor Android, SQLite, and native Storage Access Framework backup are 
   assert.match(db, /registerPlugin\('HSEFileSaver'\)/);
   assert.match(db, /HSEFileSaver\.saveFile/);
   assert.match(fileSaver, /Intent\.ACTION_CREATE_DOCUMENT/);
+  assert.match(fileSaver, /import androidx\.activity\.result\.ActivityResult;/, 'Capacitor 6 callback must use AndroidX ActivityResult');
   assert.match(fileSaver, /registerPlugin\(HSEFileSaverPlugin\.class\)/);
   assert.ok(!pkg.dependencies['@capacitor/filesystem'], 'obsolete filesystem dependency should stay removed');
   assert.ok(!pkg.dependencies['@capacitor/share'], 'obsolete share dependency should stay removed');
