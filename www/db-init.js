@@ -2,8 +2,10 @@ import { Capacitor } from '@capacitor/core';
 import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { Printer } from '@bcyesil/capacitor-plugin-printer';
 
 window.HSE_DB_MODE = Capacitor.isNativePlatform() ? 'native-sqlite' : 'browser-local';
+window.HSE_PRINTER = Printer;
 const DB_NAME = 'hse_assistant';
 const STORAGE_KEY = 'hse_personal_v1';
 const MODULE_KEYS = ['inc','act','ext','ins','ert','gz','tr','bm','pr','md','cr','pl','mc','pw','mn','rk','pe','wm','ct','rq','cmp','cw','acc','emg','inv','hyg','erg','asn','fac','doc','aud'];
