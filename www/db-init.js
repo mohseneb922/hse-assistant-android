@@ -1,7 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite';
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { CapacitorMediaStore } from '@odion-cloud/capacitor-mediastore';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
 import { migrateState, validateBackupState, mergeBackupState } from './hse-data.js';
