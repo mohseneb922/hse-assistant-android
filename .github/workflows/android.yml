@@ -178,6 +178,10 @@ jobs:
           PY
 
       - name: Build APK
+        env:
+          HSE_KEYSTORE_PASSWORD: ${{ secrets.HSE_KEYSTORE_PASSWORD }}
+          HSE_KEY_ALIAS: ${{ secrets.HSE_KEY_ALIAS }}
+          HSE_KEY_PASSWORD: ${{ secrets.HSE_KEY_PASSWORD }}
         run: |
           cd android
           chmod +x gradlew
