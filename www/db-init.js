@@ -15,7 +15,7 @@ window.HSE_APP = App;
 window.HSE_PRINTER = Printer;
 const DB_NAME = 'hse_assistant';
 const STORAGE_KEY = 'hse_personal_v1';
-const MODULE_KEYS = ['inc','act','ext','ins','ert','gz','tr','bm','pr','md','cr','pl','mc','pw','mn','rk','pe','wm','ct','rq','cmp','cw','acc','emg','inv','hyg','erg','asn','fac','doc','aud','logs','kit','drill','meeting'];
+const MODULE_KEYS = ['inc','act','ext','ins','ert','gz','tr','bm','pr','md','cr','pl','mc','pw','mn','rk','pe','wm','ct','rq','cmp','cw','acc','emg','inv','hyg','erg','asn','fac','doc','aud','logs','kit','drill','meeting','eqp'];
 const localDate = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
