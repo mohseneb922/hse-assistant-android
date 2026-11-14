@@ -268,7 +268,26 @@ export function migrateState(input) {
       const isDrill = String(record?.ty || "").includes("مانور");
       const target = isDrill ? state.drill : state.meeting;
       if (!target.some(item => item.id && item.id === record.id)) {
-        target.push({ ...record, legacySource: "mn" });
+        const mapped = isDrill
+          ? {
+              ...record,
+              scenario: record.ty || record.ag || "مانور قدیمی",
+              objective: record.ag || "",
+              participants: record.pc || "",
+              findings: record.fd || "",
+              action: record.ac || "",
+              deadline: record.nx || ""
+            }
+          : {
+              ...record,
+              title: record.ty || "جلسه قدیمی",
+              attendees: record.pc || "",
+              agenda: record.ag || "",
+              minutes: record.fd || "",
+              actions: record.ac || "",
+              deadline: record.nx || ""
+            };
+        target.push({ ...mapped, legacySource: "mn" });
       }
     }
     state.mn = [];
