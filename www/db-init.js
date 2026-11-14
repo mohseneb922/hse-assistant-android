@@ -196,22 +196,21 @@ window.HSE_FILES = {
   async exportJson(name, payload) { return this.exportFile(name, payload, 'application/json'); }
 };
 
-const script = document.createElement('script');
-script.src = './app.js';
-
-
-script.onerror = () => {
-  console.error('Application script failed to load:', script.src);
+const calendarScript = document.createElement('script');
+calendarScript.src = './persian-calendar.js';
+calendarScript.onerror = () => {
   const boot = document.getElementById('hse-boot');
-  if (boot) {
-    boot.style.display = 'flex';
-    boot.textContent = 'خطا در بارگذاری فایل app.js: ' + script.src;
-  }
+  if (boot) { boot.style.display = 'flex'; boot.textContent = 'خطا در بارگذاری تقویم شمسی؛ برنامه اجرا نشد.'; }
 };
-
-script.onload = () => {
-  console.log('app.js loaded successfully');
+calendarScript.onload = () => {
+  const script = document.createElement('script');
+  script.src = './app.js';
+  script.onerror = () => {
+    console.error('Application script failed to load:', script.src);
+    const boot = document.getElementById('hse-boot');
+    if (boot) { boot.style.display = 'flex'; boot.textContent = 'خطا در بارگذاری فایل app.js: ' + script.src; }
+  };
+  script.onload = () => console.log('app.js loaded successfully');
+  document.body.appendChild(script);
 };
-
-document.body.appendChild(script);
-document.body.appendChild(script);
+document.body.appendChild(calendarScript);

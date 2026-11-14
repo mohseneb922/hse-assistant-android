@@ -55,6 +55,75 @@ jobs:
       - name: Sync Android project
         run: npx cap sync android
 
+      - name: Configure persistent app signing and version
+        env:
+          HSE_KEYSTORE_BASE64: ${{ secrets.HSE_KEYSTORE_BASE64 }}
+          HSE_KEYSTORE_PASSWORD: ${{ secrets.HSE_KEYSTORE_PASSWORD }}
+          HSE_KEY_ALIAS: ${{ secrets.HSE_KEY_ALIAS }}
+          HSE_KEY_PASSWORD: ${{ secrets.HSE_KEY_PASSWORD }}
+        run: |
+          test -n "$HSE_KEYSTORE_BASE64"
+          test -n "$HSE_KEYSTORE_PASSWORD"
+          test -n "$HSE_KEY_ALIAS"
+          test -n "$HSE_KEY_PASSWORD"
+          python - <<'PY'
+          import base64, os, re
+          from pathlib import Path
+
+          raw = os.environ["HSE_KEYSTORE_BASE64"]
+          raw = re.sub(r"-----BEGIN [^-]+-----|-----END [^-]+-----", "", raw)
+          compact = re.sub(r"\\s+", "", raw)
+          try:
+              decoded = base64.b64decode(compact, validate=True)
+          except Exception as exc:
+              raise SystemExit(f"Invalid HSE_KEYSTORE_BASE64 secret: {exc}")
+          if not decoded:
+              raise SystemExit("HSE_KEYSTORE_BASE64 decoded to an empty file")
+          Path("android/app/hse-release.keystore").write_bytes(decoded)
+          print("Keystore Base64 decoded successfully")
+          PY
+          python - <<'PY'
+          import json, os, re
+          from pathlib import Path
+
+          gradle = Path("android/app/build.gradle")
+          source = gradle.read_text()
+          version = json.loads(Path("package.json").read_text())["version"]
+          version_code = 10000 + int(os.environ.get("GITHUB_RUN_NUMBER", "1"))
+
+          source, code_count = re.subn(r"versionCode\s+\d+", f"versionCode {version_code}", source, count=1)
+          source, name_count = re.subn(r"versionName\s+['\"]([^'\"]+)['\"]", f'versionName "{version}"', source, count=1)
+          if code_count != 1 or name_count != 1:
+              raise SystemExit("Could not safely set Android versionCode/versionName")
+
+          signing = """
+              signingConfigs {
+                  hseRelease {
+                      storeFile file("hse-release.keystore")
+                      storePassword System.getenv("HSE_KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("HSE_KEY_ALIAS")
+                      keyPassword System.getenv("HSE_KEY_PASSWORD")
+                  }
+              }
+          """
+          if "signingConfigs {" not in source:
+              source, count = re.subn(r"android\s*\{", lambda m: m.group(0) + signing, source, count=1)
+              if count != 1:
+                  raise SystemExit("Could not insert Android signing configuration")
+
+          debug_signing = """debug {
+                      signingConfig signingConfigs.hseRelease
+                  }
+                  """
+          if re.search(r"buildTypes\s*\{", source):
+              source, count = re.subn(r"buildTypes\s*\{", lambda m: m.group(0) + "\n                  " + debug_signing, source, count=1)
+          else:
+              raise SystemExit("Could not find Android buildTypes block")
+
+          gradle.write_text(source)
+          print(f"Configured persistent signing; versionCode={version_code}, versionName={version}")
+          PY
+
       - name: Generate Android App Icons
         run: |
           python -m pip install Pillow
