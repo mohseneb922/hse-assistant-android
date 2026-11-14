@@ -199,6 +199,7 @@ export function migrateState(input) {
     }
   }
 
+  state.cfg.version = Math.max(1, Number(state.cfg.version) || 1);
   state.cfg.departments = normalizeCatalog(state.cfg.departments, DEFAULT_DEPARTMENTS);
   state.cfg.activities = normalizeCatalog(state.cfg.activities, DEFAULT_ACTIVITIES);
   state.cfg.wasteTypes = normalizeCatalog(state.cfg.wasteTypes, DEFAULT_WASTE_TYPES);
