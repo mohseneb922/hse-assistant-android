@@ -182,7 +182,7 @@ return`<label>${l}${i}</label>`};
 const rd=()=>Object.fromEntries([...document.querySelectorAll('#md [name]')].map(e=>[e.name,e.dataset.hseKind?e.dataset.iso:e.value]));
 function modal(title,html,save){const m=$('#md');m.innerHTML=`<div class="sh"><h3>${title}</h3>${html}<div class="row"><button class="b" id="sb">ذخیره</button><button class="b g" id="cb">انصراف</button></div></div>`;m.style.display='flex';
 $('#cb').onclick=()=>m.style.display='none';$('#sb').onclick=async()=>{try{await save();await sv();m.style.display='none';R()}catch(e){console.error('Record save failed',e);alert('ذخیره اطلاعات کامل نشد. فرم باز می‌ماند؛ فضای دستگاه و وضعیت پایگاه داده را بررسی کنید.')}}}
-function ed(k,id){const m=M[k],r=S[k].find(x=>x.id==id)||(k=='gz'?{...S.ws}:{});modal((id?'ویرایش ':'ثبت ')+m.n,m.f.map(f=>fh(f,r)).join(''),()=>{const v=rd();if(k=='gz')WS.forEach(x=>S.ws[x]=v[x]);id?Object.assign(r,v):S[k].unshift({id:uid(),...v});if(m.af)m.af(id?r:S[k][0])})}
+function ed(k,id){const m=M[k],r=S[k].find(x=>x.id==id)||(k=='gz'?{...S.ws}:{});modal((id?'ویرایش ':'ثبت ')+m.n,m.f.map(f=>fh(f,r)).join(''),()=>{const v=rd();if(k=='gz')WS.forEach(x=>S.ws[x]=v[x]);id?Object.assign(r,v):S[k].unshift({id:uid(),...v});if(m.af)m.af(id?r:S[k][0])});if(k==='tr'){const dep=$('#md [name="dep"]'),course=$('#md [name="c"]');const filter=()=>{if(!dep||!course)return;const depId=departmentIdByName(dep.value);const available=(S.cfg.trainingCourses||[]).filter(x=>x.active!==false&&(!(x.departmentIds||[]).length||!depId||x.departmentIds.includes(depId)));const selected=course.value;course.innerHTML=available.map(x=>`<option>${esc(x.title)}</option>`).join('');if(available.some(x=>x.title===selected))course.value=selected};dep?.addEventListener('change',filter);filter()}}
 function del(k,id){cf('حذف شود؟',()=>{S[k]=S[k].filter(x=>x.id!=id)})}
 function ls(k){const m=M[k];return`<button class="b" onclick="ed('${k}')">+ ${m.n} جدید</button>`+(S[k].map(r=>{const w=m.w?m.w(r):'';return`<div class="cd ${w?(w[0]=='⏰'?'wr':'bad'):r.st=='بسته'?'ok':''}"><b>${esc(m.t(r))}</b><div class="mu">${esc(m.s(r))}</div>${w?`<span class="tag ${w[0]=='⏰'?'wr-t':'bad-t'}">${w}</span>`:''}<div class="row">${m.x?m.x(r):''}<button class="b g" onclick="ed('${k}','${r.id}')">ویرایش</button><button class="b g" onclick="del('${k}','${r.id}')">حذف</button></div></div>`}).join('')||'<p class="mu">هنوز موردی ثبت نشده.</p>')}
 const act=()=>S.ert.filter(m=>m.a!==false);
@@ -198,12 +198,13 @@ const CFG_GROUPS=[
   ['inspectionTemplates','چک‌لیست‌های بازرسی'],
   ['wasteTypes','انواع پسماند'],
   ['qualificationTypes','انواع صلاحیت'],
+  ['signCategories','دسته‌بندی نوع هشدار'],
   ['inductionTopics','موضوعات آموزش بدو ورود'],
   ['signs','تابلوهای ایمنی'],
   ['forms','فرم‌های اختصاصی']
 ];
 const cfgList=kind=>S.cfg[kind]||[];
-const cfgTitle=(kind,item)=>kind==='trainingCourses'?item.title:kind==='inductionTopics'?item:kind==='signs'?item.title:item.name||item.title||'بدون عنوان';
+const cfgTitle=(kind,item)=>kind==='trainingCourses'?item.title:(kind==='inductionTopics'||kind==='signCategories')?item:kind==='signs'?item.title:item.name||item.title||'بدون عنوان';
 function cfgRenderList(kind){
   const rows=cfgList(kind);
   return (rows.map((item,index)=>{
@@ -219,8 +220,9 @@ function cfgRenderList(kind){
 }
 function cfgEditor(kind,id){
   const rows=cfgList(kind);
-  const index=kind==='inductionTopics'&&id!==null&&id!==undefined?Number(id):-1;
-  let item=kind==='inductionTopics'?(index>=0?rows[index]:null):rows.find(x=>x.id===id);
+  const stringCatalog=['inductionTopics','signCategories'].includes(kind);
+  const index=stringCatalog&&id!==null&&id!==undefined?Number(id):-1;
+  let item=stringCatalog?(index>=0?rows[index]:null):rows.find(x=>x.id===id);
   const isEdit=!!item;
   const depNames=(item?.departmentIds||[]).map(depId=>S.cfg.departments.find(d=>d.id===depId)?.name).filter(Boolean).join('، ');
   let html='';
@@ -243,8 +245,8 @@ function cfgEditor(kind,id){
     html=fh(['title','عنوان فرم','text'],{title:item?.title||''})+
       fh(['description','توضیح فرم','area'],{description:item?.description||''})+
       fh(['fieldsText','فیلدهای فرم (هر فیلد در یک خط)','area'],{fieldsText:(item?.fields||[]).join('\n')});
-  }else if(kind==='inductionTopics'){
-    html=fh(['title','موضوع آموزش بدو ورود','text'],{title:item||''});
+  }else if(kind==='inductionTopics'||kind==='signCategories'){
+    html=fh(['title',kind==='inductionTopics'?'موضوع آموزش بدو ورود':'دسته‌بندی نوع هشدار','text'],{title:item||''});
   }else return;
   modal((isEdit?'ویرایش ':'افزودن ')+CFG_GROUPS.find(x=>x[0]===kind)[1],html,()=>{
     const v=rd();
@@ -257,9 +259,10 @@ function cfgEditor(kind,id){
     else if(kind==='inspectionTemplates')next={id:idValue,name:v.name,departmentIds,frequency:v.frequency||'روزانه',items:(v.itemsText||'').split('\n').map(x=>x.trim()).filter(Boolean),active:true};
     else if(kind==='signs')next={id:idValue,title:v.title,category:v.category,icon:v.icon||'⚠️',description:v.description||'',active:true};
     else if(kind==='forms')next={id:idValue,title:v.title,description:v.description||'',fields:(v.fieldsText||'').split('\n').map(x=>x.trim()).filter(Boolean),active:true};
-    else if(kind==='inductionTopics'){
-      if(isEdit)S.cfg.inductionTopics[index]=v.title;
-      else S.cfg.inductionTopics.push(v.title);
+    else if(kind==='inductionTopics'||kind==='signCategories'){
+      const target=S.cfg[kind];
+      if(isEdit)target[index]=v.title;
+      else target.push(v.title);
       return;
     }
     if(isEdit)Object.assign(item,next);
