@@ -66,7 +66,22 @@ jobs:
           test -n "$HSE_KEYSTORE_PASSWORD"
           test -n "$HSE_KEY_ALIAS"
           test -n "$HSE_KEY_PASSWORD"
-          echo "$HSE_KEYSTORE_BASE64" | base64 --decode > android/app/hse-release.keystore
+          python - <<'PY'
+          import base64, os, re
+          from pathlib import Path
+
+          raw = os.environ["HSE_KEYSTORE_BASE64"]
+          raw = re.sub(r"-----BEGIN [^-]+-----|-----END [^-]+-----", "", raw)
+          compact = re.sub(r"\\s+", "", raw)
+          try:
+              decoded = base64.b64decode(compact, validate=True)
+          except Exception as exc:
+              raise SystemExit(f"Invalid HSE_KEYSTORE_BASE64 secret: {exc}")
+          if not decoded:
+              raise SystemExit("HSE_KEYSTORE_BASE64 decoded to an empty file")
+          Path("android/app/hse-release.keystore").write_bytes(decoded)
+          print("Keystore Base64 decoded successfully")
+          PY
           python - <<'PY'
           import json, os, re
           from pathlib import Path
