@@ -273,8 +273,11 @@ function cfgEditor(kind,id){
     else if(kind==='forms')next={id:idValue,title:v.title,description:v.description||'',fields:(v.fieldsText||'').split('\n').map(x=>x.trim()).filter(Boolean),active:true};
     else if(kind==='inductionTopics'||kind==='signCategories'){
       const target=S.cfg[kind];
-      if(isEdit)target[index]=v.title;
-      else target.push(v.title);
+      if(isEdit){
+        const previous=target[index];
+        target[index]=v.title;
+        if(kind==='signCategories')S.cfg.signs.forEach(sign=>{if(sign.category===previous)sign.category=v.title});
+      }else target.push(v.title);
       return;
     }
     if(isEdit)Object.assign(item,next);
