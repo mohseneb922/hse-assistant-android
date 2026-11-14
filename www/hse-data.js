@@ -224,12 +224,17 @@ export function migrateState(input) {
 
   // The former "aud" screen was a manual event log, not an audit workflow.
   // Preserve those records under logs and reserve aud for real audit records.
-  if (state.aud.length && !state.logs.length) {
-    state.logs = state.aud.map((record, index) => ({
-      ...record,
-      id: String(record.id || `legacy-log-${index + 1}`),
-      legacySource: "aud"
-    }));
+  if (state.aud.length) {
+    const knownLogIds = new Set(state.logs.map(record => record?.id).filter(Boolean));
+    state.aud.forEach((record, index) => {
+      if (!record?.id || !knownLogIds.has(record.id)) {
+        state.logs.push({
+          ...record,
+          id: String(record?.id || `legacy-log-${index + 1}`),
+          legacySource: "aud"
+        });
+      }
+    });
     state.aud = [];
   }
 
@@ -250,6 +255,9 @@ export function migrateState(input) {
   const historicalNames = new Set();
   for (const record of state.pr) {
     if (record?.un) historicalNames.add(String(record.un));
+  }
+  for (const record of state.rq) {
+    if (record?.sc && record.sc !== "سایر") historicalNames.add(String(record.sc));
   }
   for (const name of historicalNames) {
     if (!knownNames.has(name)) {
