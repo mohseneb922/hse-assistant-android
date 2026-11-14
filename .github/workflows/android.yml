@@ -69,6 +69,9 @@ jobs:
       - name: Sync Android project
         run: npx cap sync android
 
+      - name: Install native Android backup file picker
+        run: python scripts/configure-hse-file-saver.py
+
       - name: Configure persistent app signing and version
         env:
           HSE_KEYSTORE_BASE64: ${{ secrets.HSE_KEYSTORE_BASE64 }}
