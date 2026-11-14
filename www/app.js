@@ -23,7 +23,7 @@ function inspectionTemplates(){return (S.cfg?.inspectionTemplates||[]).filter(x=
 function departmentIdByName(name){return (S.cfg?.departments||[]).find(x=>x.name===name)?.id||''}
 
 const M={
-inc:{n:'حادثه و شبه‌حادثه',x:r=>`<button class='b g' data-i='${r.id}' onclick="pr1(this.dataset.i,'inc')">چاپ همین مورد</button>${r.k==='حادثه'?`<button class='b g' data-i='${r.id}' onclick="createGzFromIncident(this.dataset.i)">ساخت فرم تأمین اجتماعی</button>`:''}`,f:[['d','تاریخ','date'],['tm','ساعت','time'],['k','نوع رویداد','sel',['حادثه','شبه‌حادثه']],['dep','بخش','sel',()=>activeDepartmentNames()],['p','محل دقیق','text'],['nm','نام فرد حادثه‌دیده (در صورت وجود)','pp'],['cd','کد پرسنلی/شناسه','text'],['jb','سمت یا شغل','text'],['et','وضعیت همکاری','sel',['کارمند','پیمانکار','بازدیدکننده','نامشخص']],['inj','نوع آسیب','sel',['بدون آسیب','جراحت','سوختگی','تماس شیمیایی','آسیب چشمی','برق‌گرفتگی','شکستگی یا له‌شدگی','بیماری ناگهانی','سایر']],['body','عضو آسیب‌دیده','text'],['sv','شدت پیامد','sel',['بدون آسیب','جزئی','متوسط','شدید','بحرانی']],['s','شرح رویداد و چگونگی وقوع','area'],['cause','علت‌های اولیه یا عوامل مؤثر','area'],['a','اقدام فوری و کمک‌های انجام‌شده','area'],['ld','روزهای کاری از دست رفته (عدد)','text'],['witness','شاهدان','area'],['reporter','گزارش‌دهنده','text'],['ph','عکس یا مستندات','img']],t:r=>(r.k||'رویداد')+' – '+(r.nm||r.p||''),s:r=>D(r.d)+' – '+(r.dep||'')+' – '+(r.s||''),w:r=>r.k=='حادثه'&&r.sv=='بحرانی'?'حادثه با شدت بحرانی':''},
+inc:{n:'حادثه و شبه‌حادثه',x:r=>`${r.k==='حادثه'?`<button class='b' data-i='${r.id}' onclick="printSocialSecurityIncident(this.dataset.i)">چاپ فرم تأمین اجتماعی</button>`:''}<button class='b g' data-i='${r.id}' onclick="pr1(this.dataset.i,'inc')">چاپ گزارش حادثه</button>`,f:[['d','تاریخ','date'],['tm','ساعت','time'],['k','نوع رویداد','sel',['حادثه','شبه‌حادثه']],['dep','بخش','sel',()=>activeDepartmentNames()],['p','محل دقیق','text'],['nm','نام فرد حادثه‌دیده (در صورت وجود)','pp'],['cd','کد پرسنلی/شناسه','text'],['jb','سمت یا شغل','text'],['et','وضعیت همکاری','sel',['کارمند','پیمانکار','بازدیدکننده','نامشخص']],['inj','نوع آسیب','sel',['بدون آسیب','جراحت','سوختگی','تماس شیمیایی','آسیب چشمی','برق‌گرفتگی','شکستگی یا له‌شدگی','بیماری ناگهانی','سایر']],['body','عضو آسیب‌دیده','text'],['sv','شدت پیامد','sel',['بدون آسیب','جزئی','متوسط','شدید','بحرانی']],['s','شرح رویداد و چگونگی وقوع','area'],['cause','علت‌های اولیه یا عوامل مؤثر','area'],['a','اقدام فوری و کمک‌های انجام‌شده','area'],['ld','روزهای کاری از دست رفته (عدد)','text'],['witness','شاهدان','area'],['reporter','گزارش‌دهنده','text'],['ph','عکس یا مستندات','img']],t:r=>(r.k||'رویداد')+' – '+(r.nm||r.p||''),s:r=>D(r.d)+' – '+(r.dep||'')+' – '+(r.s||''),w:r=>r.k=='حادثه'&&r.sv=='بحرانی'?'حادثه با شدت بحرانی':''},
 act:{n:'اقدام اصلاحی و پیشگیرانه',x:r=>r.src&&r.sid?`<button class='b g' onclick="openActionSource('${r.id}')">مشاهده رکورد مرجع</button>`:'',f:[['src','منبع شناسایی','sel',['بازرسی','حادثه','شبه‌حادثه','ممیزی','ارزیابی ریسک','پایش عوامل زیان‌آور','درخواست یا گزارش','سایر']],['sid','شماره یا شناسه مرجع','text'],['s','شرح عدم انطباق یا مشکل','area'],['cause','علت یا ریشه مشکل','area'],['ac','اقدام اصلاحی/پیشگیرانه موردنیاز','area'],['r','مسئول اجرا','pp'],['d','مهلت انجام','date'],['st','وضعیت','sel',['باز','در حال انجام','بسته']],['done','تاریخ تکمیل','date'],['ev','شواهد انجام','area'],['vr','تأییدکننده اثربخشی','text'],['eff','نتیجه بررسی اثربخشی','sel',['در انتظار بررسی','اثربخش','نیازمند اقدام بیشتر']],['ph','عکس یا مستندات','img']],t:r=>r.s,s:r=>'منبع: '+(r.src||'—')+(r.sid?' – شناسه مرجع: '+r.sid:'')+' – مسئول: '+(r.r||'—')+' – مهلت: '+D(r.d)+' – '+r.st,w:r=>r.st!='بسته'&&r.d&&r.d<T?'معوق':r.st=='بسته'&&r.eff=='نیازمند اقدام بیشتر'?'اثربخشی تأیید نشده':r.st=='بسته'&&r.eff=='در انتظار بررسی'?'در انتظار بررسی اثربخشی':''},
 ext:{n:'کپسول',f:[['ty','نوع','sel',['پودر و گاز ABC','پودر و گاز BC','CO₂ (دی‌اکسید کربن)','آب و گاز (آبی)','آب و مواد افزودنی (Water Mist)','فوم (AFFF)','پودر شیمیایی خشک کلاس D','کلاس F/K (روغن و چربی پخت‌و‌پز)','هالون جایگزین (FM-200 / Novec)','سایر']],['mv','نوع حمل','sel',['دستی','چرخ‌دار']],['p','محل','text'],['w','ظرفیت (مثلاً ۶ کیلو)','text'],['sn','شماره سریال یا پلاک','text'],['y','سال ساخت','text'],['d','سررسید شارژ','date']],t:r=>r.ty+' – '+r.w,s:r=>r.p+' – شارژ: '+D(r.d)+(r.mv=='چرخ‌دار'?' – چرخ‌دار':'')+(KC[r.ty]?' – '+KC[r.ty]:''),w:r=>r.d&&r.d<T?'سررسید گذشته':''}};
 const WS=['wn','wa','wk','wo','wad','wp'];
@@ -111,7 +111,7 @@ function showIncPrintPicker(){
         <input class="incPrintCheck" type="checkbox" value="${esc(r.id)}" ${selected.has(String(r.id))?'checked':''}>
         <span><b>${esc(r.nm||'بدون نام')}</b><br><span class="mu">${esc(D(r.d))} – ${esc(r.k||'نوع نامشخص')} – ${esc(r.dep||'بخش نامشخص')}</span><br><span class="mu">${esc(r.p||r.s||'بدون شرح کوتاه')}</span></span>
       </label>
-      <button class="b g no" data-inc-view="${esc(r.id)}">مشاهده جزئیات</button><button class="b no" data-inc-print="${esc(r.id)}">چاپ همین مورد</button>
+      <button class="b g no" data-inc-view="${esc(r.id)}">مشاهده جزئیات</button><button class="b no" data-inc-print="${esc(r.id)}">چاپ فرم تأمین اجتماعی</button><button class="b g no" data-inc-report="${esc(r.id)}">چاپ گزارش حادثه</button>
     </div>`).join(''):'<p class="mu">موردی با این مشخصات پیدا نشد.</p>';
     $('#incPrintCount').textContent=`نمایش ${N(rows.length)} مورد | انتخاب‌شده: ${N(selected.size)}`;
     document.querySelectorAll('.incPrintCheck').forEach(el=>el.addEventListener('change',()=>{
@@ -123,7 +123,10 @@ function showIncPrintPicker(){
       if(r)showRep('جزئیات رویداد – '+(r.nm||r.k||''),rec('inc',r));
     }));
     document.querySelectorAll('[data-inc-print]').forEach(el=>el.addEventListener('click',()=>{
-      pr1(el.dataset.incPrint,'inc');
+      printSocialSecurityIncident(el.dataset.incPrint);
+    }));
+    document.querySelectorAll('[data-inc-report]').forEach(el=>el.addEventListener('click',()=>{
+      pr1(el.dataset.incReport,'inc');
     }));
     $('#incSelectVisible').onclick=()=>{
       rows.forEach(r=>selected.add(String(r.id)));
@@ -181,6 +184,23 @@ const NL=String.fromCharCode(10);
 M.tr={n:'آموزش',f:[['nm','نام فرد','pp'],['dep','بخش مخاطب','sel',()=>activeDepartmentNames()],['c','عنوان دوره','sel',()=>activeTrainingCourseTitles()],['d','تاریخ برگزاری','date'],['h','مدت (ساعت)','text'],['tc','مدرس','text'],['sg','مدرک','sel',['امضای حضور','گواهی دارد','بدون مدرک']],['ex','تاریخ تمدید بعدی','dt'],['no','توضیحات','text']],t:r=>r.nm+' – '+r.c,s:r=>(r.dep||'')+' – '+D(r.d)+(r.h?' – '+r.h+' ساعت':'')+' – '+r.sg,w:r=>r.ex&&r.ex<T?'آموزش منقضی':''};
 M.bm={n:'گزارش بیمه',f:[['_h','بیمه‌نامه'],['bi','شرکت بیمه‌گر','text'],['bp','شماره بیمه‌نامه','text'],['be','تاریخ پایان اعتبار','dt'],['bg','نماینده یا شعبه بیمه','text'],['_h','حادثه'],['nm','نام مصدوم','text'],['dt','تاریخ حادثه','date'],['tm','ساعت','time'],['pl','محل دقیق','text'],['cs','علت','area'],['bo','عضو آسیب‌دیده','text'],['res','نتیجه (درمان، غیبت، ازکارافتادگی، فوت)','text'],['ds','شرح واقعه','area'],['ac','اقدامات بعد از حادثه','area'],['_h','مستندات ایمنی (اثبات رعایت مقررات)'],['e1','سوابق بازرسی ایمنی قبل از حادثه','area'],['e2','سوابق آموزش مصدوم','area'],['e3','وسایل حفاظتی تحویل‌شده و استفاده‌شده','area'],['e4','اقدامات اصلاحی و پیشگیرانه','area'],['_h','مدارک و ارسال'],['at','مدارک ضمیمه (گزارش تأمین اجتماعی، گزارش پزشک، عکس صحنه، شهود...)','area'],['sd','تاریخ ارسال به بیمه‌گر','dt'],['st','وضعیت','sel',['پیش‌نویس','ارسال شد','در حال بررسی','پرداخت شد']]],t:r=>'گزارش بیمه – '+(r.nm||''),s:r=>D(r.dt)+' – '+r.st,x:r=>`<button class='b g' data-i='${r.id}' data-k='bm' onclick='pr1(this.dataset.i,this.dataset.k)'>چاپ</button>`};
 TT.tr='ثبت آموزش‌ها';TT.bm='گزارش‌های بیمه مسئولیت مدنی';
+function printSocialSecurityIncident(id){
+  const incident=S.inc.find(x=>String(x.id)===String(id));
+  if(!incident)return nt('گزارش حادثه پیدا نشد.');
+  if(incident.k==='شبه‌حادثه')return nt('فرم تأمین اجتماعی فقط برای حادثه دارای مصدوم استفاده می‌شود؛ برای شبه‌حادثه گزارش معمول را چاپ کنید.');
+  const employee=(S.pr||[]).find(p=>(incident.cd&&String(p.cd)===String(incident.cd))||(incident.nm&&String(p.n||'').trim()===String(incident.nm).trim()));
+  const training=(S.tr||[]).filter(t=>incident.nm&&String(t.nm||'').trim()===String(incident.nm).trim());
+  const form={
+    nm:incident.nm||'',dt:incident.d||'',tm:incident.tm||'',pl:incident.p||'',
+    cs:incident.cause||'',wt:incident.jb||'',bo:incident.body||'',
+    res:[incident.inj,incident.sv].filter(Boolean).join(' – '),
+    ds:incident.s||'',ac:incident.a||'',wi:incident.witness||'',
+    jl:employee?.un||incident.dep||'',jb:employee?.job||incident.jb||'',
+    hs:employee?.contract||incident.et||'',nc:employee?.nc||'',hd:employee?.hd||'',
+    tn:training.length?'بلی':''
+  };
+  showRep('فرم گزارش اعلام حادثه تأمین اجتماعی',officialGzPrintHtml(form));
+}
 function createGzFromIncident(id){
   const incident=S.inc.find(x=>String(x.id)===String(id));
   if(!incident)return nt('گزارش حادثه پیدا نشد.');
