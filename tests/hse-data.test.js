@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import {
   DEFAULT_SETTINGS,
   migrateState,
-  validateBackupState
+  validateBackupState,
+  mergeBackupState
 } from "../www/hse-data.js";
 
 test("new installations receive generic editable company catalogs", () => {
@@ -95,4 +96,33 @@ test("migration is idempotent for an already migrated state", () => {
   const once = migrateState({ aud: [{ id: "old-event" }] });
   const twice = migrateState(once);
   assert.deepEqual(twice, once);
+});
+
+
+test("backup merge preserves local records and adds imported records without duplicates", () => {
+  const current = {
+    inc: [{ id: "local-1", note: "گوشی دوم" }, { id: "same-1", note: "نسخه محلی" }],
+    hr: { monthA: 12 },
+    cfg: { departments: [{ id: "dep-1", name: "واحد محلی", active: true }] }
+  };
+  const imported = {
+    inc: [{ id: "remote-1", note: "گوشی اول" }, { id: "same-1", note: "نسخه واردشده" }],
+    hr: { monthB: 7 },
+    cfg: { departments: [{ id: "dep-2", name: "واحد جدید", active: true }] }
+  };
+  const merged = mergeBackupState(current, imported);
+  assert.ok(merged.inc.some(item => item.id === "local-1"));
+  assert.ok(merged.inc.some(item => item.id === "remote-1"));
+  assert.ok(merged.inc.some(item => item.id === "same-1" && item.note === "نسخه محلی"));
+  assert.ok(merged.inc.some(item => item.id === "same-1-imported-1" && item.note === "نسخه واردشده"));
+  assert.deepEqual(merged.hr, { monthA: 12, monthB: 7 });
+  assert.ok(merged.cfg.departments.some(item => item.id === "dep-1"));
+  assert.ok(merged.cfg.departments.some(item => item.id === "dep-2"));
+});
+
+test("re-importing the same backup does not create duplicate records", () => {
+  const current = { inc: [{ id: "event-1", note: "رویداد" }] };
+  const once = mergeBackupState(current, { inc: [{ id: "event-2", note: "جدید" }] });
+  const twice = mergeBackupState(once, { inc: [{ id: "event-2", note: "جدید" }] });
+  assert.equal(twice.inc.length, 2);
 });
