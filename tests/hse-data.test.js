@@ -42,6 +42,19 @@ test("legacy audit event records are preserved in the event log", () => {
   assert.equal(state.logs[0].legacySource, "aud");
 });
 
+test("legacy combined meetings and drills are split while preserving IDs", () => {
+  const state = migrateState({
+    mn: [
+      { id: "old-drill", ty: "مانور تخلیه", d: "2026-10-01" },
+      { id: "old-meeting", ty: "جلسه کمیته", d: "2026-10-02" }
+    ]
+  });
+  assert.equal(state.mn.length, 0);
+  assert.equal(state.drill[0].id, "old-drill");
+  assert.equal(state.meeting[0].id, "old-meeting");
+  assert.equal(state.drill[0].legacySource, "mn");
+});
+
 test("new module arrays and helper objects are initialized without overwriting data", () => {
   const state = migrateState({ kit: [{ id: "kit-1", name: "گاز استریل" }], hr: { "j1405-08": 120 } });
   assert.equal(state.kit[0].id, "kit-1");
