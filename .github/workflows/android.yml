@@ -71,8 +71,14 @@ jobs:
           from pathlib import Path
 
           raw = os.environ["HSE_KEYSTORE_BASE64"]
-          raw = re.sub(r"-----BEGIN [^-]+-----|-----END [^-]+-----", "", raw)
-          compact = re.sub(r"\\s+", "", raw)
+          # certutil -encode adds PEM boundary lines and a human-readable
+          # completion footer. Keep only lines consisting of Base64 symbols.
+          chunks = [
+              line.strip()
+              for line in raw.replace("\\ufeff", "").splitlines()
+              if re.fullmatch(r"[A-Za-z0-9+/]+={0,2}", line.strip())
+          ]
+          compact = "".join(chunks)
           try:
               decoded = base64.b64decode(compact, validate=True)
           except Exception as exc:
