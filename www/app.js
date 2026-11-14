@@ -72,7 +72,70 @@ function showRep(t,inner,raw){
   $('#pb').onclick=openPrint;
   $('#shareGuide').onclick=()=>nt('ابتدا «چاپ / ذخیره PDF» را بزنید و گزینه Save as PDF را انتخاب کنید. سپس فایل PDF ذخیره‌شده را از برنامه فایل‌های گوشی به اشتراک بگذارید.');
 }
-function pr(k){if(k==='acc'){printGateForms();return}showRep(k=='home'?'گزارش جامع HSE':TT[k],(k=='home'?Object.keys(TT):[k]).map(sec).join(''))}
+function viewIncident(id){const r=S.inc.find(x=>String(x.id)===String(id));if(r)showRep('جزئیات رویداد – '+(r.nm||r.k||''),rec('inc',r))}
+
+function showIncPrintPicker(){
+  const m=$('#md');
+  m.innerHTML=`<div class="sh">
+    <div class="row no"><button class="b g" id="xb">بستن</button></div>
+    <h2>فهرست حوادث و شبه‌حوادث</h2>
+    <p class="mu">ابتدا موارد موردنظر را جست‌وجو و انتخاب کنید؛ سپس فقط همان موارد چاپ می‌شوند.</p>
+    <div class="row no" style="gap:8px;flex-wrap:wrap">
+      <input id="incPrintSearch" type="search" placeholder="جست‌وجوی نام فرد، تاریخ یا نوع رویداد..." style="flex:1;min-width:220px">
+      <select id="incPrintType"><option value="">همه موارد</option><option value="حادثه">حادثه</option><option value="شبه‌حادثه">شبه‌حادثه</option></select>
+    </div>
+    <div class="row no" style="justify-content:space-between;margin:10px 0">
+      <button class="b g" id="incSelectVisible">انتخاب موارد نمایش‌داده‌شده</button>
+      <span class="mu" id="incPrintCount"></span>
+    </div>
+    <div id="incPrintRows"></div>
+    <div class="row no" style="margin-top:12px">
+      <button class="b" id="incPrintSelected">چاپ موارد انتخاب‌شده</button>
+    </div>
+  </div>`;
+  m.style.display='flex';
+  $('#xb').onclick=()=>m.style.display='none';
+  const selected=new Set();
+  const norm=v=>String(v??'').toLowerCase().replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[\u200c\s]/g,'');
+  const render=()=>{
+    const q=norm($('#incPrintSearch').value),type=$('#incPrintType').value;
+    const rows=[...S.inc].sort((a,b)=>String(b.d||'').localeCompare(String(a.d||''))).filter(r=>{
+      if(type&&r.k!==type)return false;
+      const hay=norm([r.nm,r.d,D(r.d),r.k,r.dep,r.p].join(' '));
+      return !q||hay.includes(q);
+    });
+    $('#incPrintRows').innerHTML=rows.length?rows.map(r=>`<div class="rc" style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+      <label style="display:flex;gap:8px;align-items:center;flex:1;min-width:220px">
+        <input class="incPrintCheck" type="checkbox" value="${esc(r.id)}" ${selected.has(String(r.id))?'checked':''}>
+        <span><b>${esc(r.nm||'بدون نام')}</b><br><span class="mu">${esc(D(r.d))} – ${esc(r.k||'نوع نامشخص')} – ${esc(r.dep||'بخش نامشخص')}</span><br><span class="mu">${esc(r.p||r.s||'بدون شرح کوتاه')}</span></span>
+      </label>
+      <button class="b g no" data-inc-view="${esc(r.id)}">مشاهده جزئیات</button>
+    </div>`).join(''):'<p class="mu">موردی با این مشخصات پیدا نشد.</p>';
+    $('#incPrintCount').textContent=`نمایش ${N(rows.length)} مورد | انتخاب‌شده: ${N(selected.size)}`;
+    document.querySelectorAll('.incPrintCheck').forEach(el=>el.addEventListener('change',()=>{
+      el.checked?selected.add(el.value):selected.delete(el.value);
+      $('#incPrintCount').textContent=`نمایش ${N(rows.length)} مورد | انتخاب‌شده: ${N(selected.size)}`;
+    }));
+    document.querySelectorAll('[data-inc-view]').forEach(el=>el.addEventListener('click',()=>{
+      const r=S.inc.find(x=>String(x.id)===el.dataset.incView);
+      if(r)showRep('جزئیات رویداد – '+(r.nm||r.k||''),rec('inc',r));
+    }));
+    $('#incSelectVisible').onclick=()=>{
+      rows.forEach(r=>selected.add(String(r.id)));
+      render();
+    };
+  };
+  $('#incPrintSearch').addEventListener('input',render);
+  $('#incPrintType').addEventListener('change',render);
+  $('#incPrintSelected').onclick=()=>{
+    const chosen=S.inc.filter(r=>selected.has(String(r.id)));
+    if(!chosen.length){alert('ابتدا حداقل یک مورد را انتخاب کنید.');return}
+    showRep('گزارش حوادث و شبه‌حوادث',chosen.map(r=>rec('inc',r)).join(''));
+  };
+  render();
+}
+
+function pr(k){if(k==='acc'){printGateForms();return}if(k==='inc'){showIncPrintPicker();return}showRep(k=='home'?'گزارش جامع HSE':TT[k],(k=='home'?Object.keys(TT):[k]).map(sec).join(''))}
 function pr1(id,k){k=k||'gz';showRep(k=='gz'?'فرم اعلام حادثه':k=='rq'?'درخواست یا گزارش ایمنی':'گزارش به بیمه مسئولیت مدنی',rec(k,S[k].find(x=>x.id==id)))}
 const NL=String.fromCharCode(10);
 M.tr={n:'آموزش',f:[['nm','نام فرد','pp'],['dep','بخش مخاطب','sel',()=>activeDepartmentNames()],['c','عنوان دوره','sel',()=>activeTrainingCourseTitles()],['d','تاریخ برگزاری','date'],['h','مدت (ساعت)','text'],['tc','مدرس','text'],['sg','مدرک','sel',['امضای حضور','گواهی دارد','بدون مدرک']],['ex','تاریخ تمدید بعدی','dt'],['no','توضیحات','text']],t:r=>r.nm+' – '+r.c,s:r=>(r.dep||'')+' – '+D(r.d)+(r.h?' – '+r.h+' ساعت':'')+' – '+r.sg,w:r=>r.ex&&r.ex<T?'آموزش منقضی':''};
