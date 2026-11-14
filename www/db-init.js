@@ -4,10 +4,11 @@ import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
-import { migrateState, validateBackupState } from './hse-data.js';
+import { migrateState, validateBackupState, mergeBackupState } from './hse-data.js';
 
 window.HSE_MIGRATE_STATE = migrateState;
 window.HSE_VALIDATE_BACKUP_STATE = validateBackupState;
+window.HSE_MERGE_BACKUP_STATE = mergeBackupState;
 
 window.HSE_IS_NATIVE = Capacitor.isNativePlatform();
 window.HSE_DB_MODE = window.HSE_IS_NATIVE ? 'native-sqlite' : 'browser-local';
