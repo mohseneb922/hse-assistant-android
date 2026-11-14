@@ -2,7 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
+import { CapacitorMediaStore } from '@odion-cloud/capacitor-mediastore';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
 import { migrateState, validateBackupState, mergeBackupState } from './hse-data.js';
 
@@ -196,14 +196,14 @@ try {
 window.HSE_FILES = {
   async exportFile(name, payload, mimeType = 'application/octet-stream') {
     if (!Capacitor.isNativePlatform()) throw new Error('Native file export unavailable');
-    const saved = await Filesystem.writeFile({
-      path: name,
-      data: payload,
-      directory: Directory.Documents,
-      encoding: Encoding.UTF8,
-      recursive: true
+    const base64 = btoa(unescape(encodeURIComponent(String(payload))));
+    const saved = await CapacitorMediaStore.saveFileAs({
+      fileName: name,
+      mimeType,
+      data: base64
     });
-    await Share.share({ title: 'دستیار HSE', text: `فایل خروجی (${mimeType})`, url: saved.uri, dialogTitle: 'ذخیره یا ارسال فایل' });
+    if (saved?.cancelled) return saved;
+    if (!saved?.success) throw new Error('File save was not completed');
     return saved;
   },
   async exportJson(name, payload) { return this.exportFile(name, payload, 'application/json'); }
