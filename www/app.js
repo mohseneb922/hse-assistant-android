@@ -14,7 +14,10 @@ function activeDepartmentNames(){return activeCatalogNames('departments')}
 function activeActivityNames(){return activeCatalogNames('activities')}
 function activeWasteTypeNames(){return activeCatalogNames('wasteTypes')}
 function activeQualificationTypes(){return activeCatalogNames('qualificationTypes')}
-function activeTrainingCourseTitles(){return (S.cfg?.trainingCourses||[]).filter(x=>x&&x.active!==false).map(x=>x.title).filter(Boolean)}
+function activeTrainingCourseTitles(){
+  const activeIds=new Set((S.cfg?.departments||[]).filter(x=>x.active!==false).map(x=>x.id));
+  return (S.cfg?.trainingCourses||[]).filter(x=>x&&x.active!==false&&(!(x.departmentIds||[]).length||x.departmentIds.some(id=>activeIds.has(id)))).map(x=>x.title).filter(Boolean)
+}
 function inspectionTemplates(){return (S.cfg?.inspectionTemplates||[]).filter(x=>x&&x.active!==false)}
 function departmentIdByName(name){return (S.cfg?.departments||[]).find(x=>x.name===name)?.id||''}
 
@@ -154,7 +157,7 @@ const bkd=()=>S.bk?-days(S.bk):99;
 const bkc=()=>bkd()>7?`<div class='cd wr'><b>پشتیبان‌گیری</b><div class='mu'>${S.bk?N(bkd())+' روز است':'هنوز'} پشتیبان فایل نگرفته‌اید. از بخش «پشتیبان» بگیرید.</div></div>`:'';
 const bkv=()=>`<h2>پشتیبان‌گیری و قفل</h2><div class='cd ${bkd()>7?'wr':'ok'}'><b>آخرین پشتیبان فایل: ${S.bk?D(S.bk):'هیچ‌وقت'}</b><div class='row'><button class='b' onclick='bkf()'>ذخیره پشتیبان (فایل)</button></div></div><label>بازیابی از فایل پشتیبان<input type='file' accept='.json,application/json' onchange='rsf(this)'></label><div class='cd'><b>قفل برنامه: ${S.pin?'فعال':'غیرفعال'}</b><div class='mu'>این PIN رمزنگاری یا احراز هویت امن نیست و با دسترسی فنی به دستگاه قابل دور زدن است؛ برای حفاظت از اطلاعات حساس کافی نیست.</div><div class='row'><button class='b g' onclick='spin()'>${S.pin?'تغییر رمز':'تنظیم رمز'}</button>${S.pin?`<button class='b g' onclick='lock()'>قفل کن</button><button class='b g' onclick='rpin()'>برداشتن قفل</button>`:''}</div></div><div class='mu'>حجم فعلی اطلاعات: ${N(Math.round(JSON.stringify(S).length/1024))} کیلوبایت. ظرفیت تابع فضای آزاد دستگاه است.</div>`;
 async function bkf(){try{const payload=JSON.stringify({app:'HSE-Assistant',schema:1,created_at:new Date().toISOString(),data:S});const name='HSE-backup-'+T+'.json';if(window.HSE_FILES?.exportJson){await window.HSE_FILES.exportJson(name,payload)}else{const blob=new Blob([payload],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}S.bk=T;await sv();R();alert('فایل پشتیبان آماده شد')}catch(e){console.error(e);alert('ذخیره پشتیبان انجام نشد؛ از گزینه کپی متن پشتیبان استفاده کنید.')}}
-function validBackup(x){const d=x&&x.app==='HSE-Assistant'?x.data:x;if(!d||typeof d!=='object'||Array.isArray(d))return null;const keys=['inc','act','ext','ins','ert','gz','tr','bm','pr','md','cr','pl','mc','pw','mn','rk','pe','wm','ct','rq','cmp','cw','acc','emg','inv','hyg','erg','asn','fac','doc','aud'];for(const k of keys){if(d[k]!==undefined&&!Array.isArray(d[k]))return null}if(d.ck!==undefined&&(typeof d.ck!=='object'||Array.isArray(d.ck)))return null;return d}
+function validBackup(x){return window.HSE_VALIDATE_BACKUP_STATE?.(x)||null}
 async function applyBackupState(next){const previous=S;S=JSON.parse(JSON.stringify(next));mig();try{await sv()}catch(e){S=previous;try{localStorage.setItem(K,JSON.stringify(previous))}catch(_){};throw e}}
 function rsf(i){const f=i.files[0];if(!f)return;if(f.size>50*1024*1024){alert('حجم فایل پشتیبان بیش از ۵۰ مگابایت است');i.value='';return}const r=new FileReader();r.onload=async()=>{try{const x=validBackup(JSON.parse(r.result));if(!x)throw new Error('invalid');await applyBackupState(x);R();alert('بازیابی انجام شد')}catch(e){console.error('Restore failed',e);alert('ساختار فایل پشتیبان معتبر نیست یا ذخیره‌سازی ناموفق بود؛ اطلاعات قبلی حفظ شد')}finally{i.value=''}};r.onerror=()=>{alert('خواندن فایل ناموفق بود');i.value=''};r.readAsText(f)}
 async function restoreTextBackup(){try{const x=validBackup(JSON.parse($('#bi').value));if(!x)throw new Error('invalid');await applyBackupState(x);R();alert('بازیابی انجام شد')}catch(e){console.error('Text restore failed',e);alert('ساختار متن پشتیبان معتبر نیست یا ذخیره‌سازی ناموفق بود؛ اطلاعات قبلی حفظ شد')}}
@@ -216,8 +219,8 @@ function cfgRenderList(kind){
 }
 function cfgEditor(kind,id){
   const rows=cfgList(kind);
-  const index=kind==='inductionTopics'?Number(id):-1;
-  let item=kind==='inductionTopics'?rows[index]:rows.find(x=>x.id===id);
+  const index=kind==='inductionTopics'&&id!==null&&id!==undefined?Number(id):-1;
+  let item=kind==='inductionTopics'?(index>=0?rows[index]:null):rows.find(x=>x.id===id);
   const isEdit=!!item;
   const depNames=(item?.departmentIds||[]).map(depId=>S.cfg.departments.find(d=>d.id===depId)?.name).filter(Boolean).join('، ');
   let html='';
