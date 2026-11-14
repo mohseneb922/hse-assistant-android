@@ -1,7 +1,6 @@
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite';
-import { CapacitorMediaStore } from '@odion-cloud/capacitor-mediastore';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
 import { migrateState, validateBackupState, mergeBackupState } from './hse-data.js';
 
@@ -192,11 +191,11 @@ try {
   window.HSE_DB_ERROR = String(error?.message || error);
 }
 
-window.HSE_FILES = {
+const HSEFileSaver = registerPlugin('HSEFileSaver');
+window.HSE_FILES = Capacitor.isNativePlatform() ? {
   async exportFile(name, payload, mimeType = 'application/octet-stream') {
-    if (!Capacitor.isNativePlatform()) throw new Error('Native file export unavailable');
     const base64 = btoa(unescape(encodeURIComponent(String(payload))));
-    const saved = await CapacitorMediaStore.saveFileAs({
+    const saved = await HSEFileSaver.saveFile({
       fileName: name,
       mimeType,
       data: base64
@@ -206,7 +205,7 @@ window.HSE_FILES = {
     return saved;
   },
   async exportJson(name, payload) { return this.exportFile(name, payload, 'application/json'); }
-};
+} : {};
 
 const calendarScript = document.createElement('script');
 calendarScript.src = './persian-calendar.js';
