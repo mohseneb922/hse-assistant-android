@@ -57,24 +57,21 @@ const tb=(h,n)=>`<table class='ck'><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr
 const BF=()=>[['فرم اعلام حادثه تأمین اجتماعی',()=>bl('gz')],['گزارش حادثه و شبه حادثه',()=>bl('inc')],['اقدام اصلاحی',()=>bl('act')],['گزارش بیمه مسئولیت مدنی',()=>bl('bm')],['فرم درخواست، پیشنهاد و اعلام خرابی (سرپرست و اپراتور)',()=>{const cb=a=>a.map(x=>`<span style='margin-inline-end:14px'>☐ ${x}</span>`).join(''),ln=n=>Array(n).fill(`<div class='ln'><span style='width:98%'></span></div>`).join('');return `<div class='ln'><b>تاریخ:</b> <span></span></div><div class='ln'><b>نام و سمت (سرپرست یا اپراتور):</b> <span></span></div><div class='ln'><b>بخش:</b> <span style='width:30%'></span> <b>تجهیز یا محل:</b> <span style='width:30%'></span></div><div class='ln'><b>نوع:</b> ${cb(['اعلام خرابی یا نقص','درخواست','پیشنهاد','عمل یا شرایط ناایمن','سایر'])}</div><div class='ln'><b>فوریت:</b> ${cb(['عادی','فوری','خطرناک (توقف کار)'])}</div><h4>شرح</h4>${ln(5)}<h4>پیشنهاد برای رفع یا بهبود</h4>${ln(3)}<div class='ln'><b>امضای گزارش‌دهنده:</b> <span style='width:30%'></span> <b>امضای سرپرست:</b> <span style='width:30%'></span></div><h4>تکمیل توسط HSE</h4><div class='ln'><b>تاریخ دریافت:</b> <span style='width:25%'></span> <b>شماره ثبت:</b> <span style='width:25%'></span></div><div class='ln'><b>وضعیت:</b> ${cb(['در حال بررسی','انجام شد','رد شد'])}</div><div class='ln'><b>اقدام انجام‌شده:</b></div>${ln(3)}<div class='ln'><b>مهلت اقدام:</b> <span style='width:25%'></span> <b>امضای مسئول HSE:</b> <span style='width:30%'></span></div>`}],['لیست حضور آموزش',()=>`<div class='ln'><b>عنوان دوره:</b> <span></span></div><div class='ln'><b>تاریخ و مدرس:</b> <span></span></div>`+tb(['ردیف','نام و نام خانوادگی','سمت','امضا'],15)],['تحویل وسایل حفاظت فردی',()=>tb(['ردیف','نام','نوع PPE','تاریخ تحویل','امضا'],15)],...inspectionTemplates().map(t=>['چک‌لیست بازرسی: '+t.name,()=>`<div class='ln'><b>تاریخ و بازرس:</b> <span></span></div><table class='ck'><tr><th>مورد</th><th>مطابق</th><th>نامطابق</th><th>توضیح</th></tr>${t.items.map(x=>`<tr><td>${esc(x)}</td><td></td><td></td><td></td></tr>`).join('')}</table>`])];
 function fm(i){const b=BF()[i];showRep(b[0],b[1]())}
 const PC=`body{font:13px/1.9 Vazirmatn,Tahoma,sans-serif;color:#000;padding:14px;direction:rtl}h4{margin:12px 0 2px;border-bottom:1px solid #000}.rc{border:1px solid #000;padding:6px 10px;margin:8px 0;page-break-inside:avoid}.mu{color:#444}${SC}@media print{button{display:none}}`;
-function showRep(t,inner,raw){const m=$('#md'),h=raw?inner:`<h2>${t}</h2><div class='mu'>تاریخ: ${D(T)}</div>${inner}`;
-m.innerHTML=`<div class='sh'><div class='row no'><button class='b' id='pb'>چاپ / PDF</button><button class='b g' id='fb'>ذخیره فایل</button><button class='b g' id='sb2'>اشتراک</button><button class='b g' id='xb'>بستن</button></div><div id='pv' style='background:#fff;color:#000;padding:12px;margin-top:10px;border-radius:6px'>${h}</div></div>`;m.style.display='flex';
-$('#xb').onclick=()=>m.style.display='none';
-$('#pb').onclick=async()=>{
-  const html='<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(t)+'</title><style>@page{size:A4;margin:12mm}'+PC+'html,body{background:#fff!important;color:#000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Tahoma,Vazirmatn,sans-serif}#pv{width:100%}table{width:100%;border-collapse:collapse}tr,td,th{page-break-inside:avoid}</style></head><body><div id="pv">'+$('#pv').innerHTML+'</div></body></html>';
-  try{
-    if(window.HSE_PRINTER?.print){
-      await window.HSE_PRINTER.print({content:html,name:'HSE-'+T,orientation:'portrait'});
-    }else{
-      window.print();
-    }
-  }catch(e){
-    console.error('Native PDF/print failed:',e);
-    alert('باز کردن پنجره چاپ PDF ناموفق بود. لطفاً دوباره تلاش کنید.');
-  }
-};
-$('#sb2').onclick=async()=>{const x='<!DOCTYPE html><html lang=fa dir=rtl><head><meta charset=utf-8><style>'+PC+'</style></head><body><div id=pv>'+$('#pv').innerHTML+'</div></body></html>';try{const f=new File([x],'HSE-'+T+'.html',{type:'text/html'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:t});return}if(navigator.share){await navigator.share({title:t,text:$('#pv').innerText});return}alert('اشتراک گذاری در دسترس نیست؛ «ذخیره فایل» را بزنید و فایل را بفرستید.')}catch(e){if(e.name!='AbortError')alert('اشتراک گذاری در این نمایش فعال نیست؛ «ذخیره فایل» را بزنید.')}};
-$('#fb').onclick=async()=>{try{const html=`<!DOCTYPE html><html lang='fa' dir='rtl'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>${t}</title><style>${PC}</style></head><body><button onclick='print()'>چاپ / PDF</button><div id='pv'>${h}</div></body></html>`;if(window.HSE_FILES?.exportFile)await window.HSE_FILES.exportFile('HSE-'+T+'.html',html,'text/html');else{const u=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'})),a=document.createElement('a');a.href=u;a.download='HSE-'+T+'.html';a.click();setTimeout(()=>URL.revokeObjectURL(u),3000)}}catch(e){alert('ذخیره گزارش انجام نشد')}}}
+function showRep(t,inner,raw){
+  const m=$('#md'),h=raw?inner:`<h2>${esc(t)}</h2><div class='mu'>تاریخ: ${D(T)}</div>${inner}`;
+  m.innerHTML=`<div class='sh'><div class='row no'><button class='b' id='pb'>چاپ / ذخیره PDF</button><button class='b g' id='shareGuide'>راهنمای اشتراک PDF</button><button class='b g' id='xb'>بستن</button></div><p class='mu no'>در پنجره چاپ اندروید، برای ذخیره فایل گزینه «Save as PDF» و برای چاپ کاغذی چاپگر موردنظر را انتخاب کنید.</p><div id='pv' style='background:#fff;color:#000;padding:12px;margin-top:10px;border-radius:6px'>${h}</div></div>`;
+  m.style.display='flex';
+  $('#xb').onclick=()=>m.style.display='none';
+  const openPrint=async()=>{
+    const html='<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(t)+'</title><style>@page{size:A4;margin:12mm}'+PC+'html,body{background:#fff!important;color:#000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Tahoma,Vazirmatn,sans-serif}#pv{width:100%}table{width:100%;border-collapse:collapse}tr,td,th{page-break-inside:avoid}</style></head><body><div id="pv">'+$('#pv').innerHTML+'</div></body></html>';
+    try{
+      if(window.HSE_PRINTER?.print)await window.HSE_PRINTER.print({content:html,name:'HSE-'+T,orientation:'portrait'});
+      else window.print();
+    }catch(e){console.error('Native PDF/print failed:',e);alert('باز کردن پنجره چاپ PDF ناموفق بود. لطفاً دوباره تلاش کنید.')}
+  };
+  $('#pb').onclick=openPrint;
+  $('#shareGuide').onclick=()=>nt('ابتدا «چاپ / ذخیره PDF» را بزنید و گزینه Save as PDF را انتخاب کنید. سپس فایل PDF ذخیره‌شده را از برنامه فایل‌های گوشی به اشتراک بگذارید.');
+}
 function pr(k){showRep(k=='home'?'گزارش جامع HSE':TT[k],(k=='home'?Object.keys(TT):[k]).map(sec).join(''))}
 function pr1(id,k){k=k||'gz';showRep(k=='gz'?'فرم اعلام حادثه':k=='rq'?'درخواست یا گزارش ایمنی':'گزارش به بیمه مسئولیت مدنی',rec(k,S[k].find(x=>x.id==id)))}
 const NL=String.fromCharCode(10);
