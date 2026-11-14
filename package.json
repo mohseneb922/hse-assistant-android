@@ -9,7 +9,7 @@
     "android": "cap open android",
     "apk:debug": "npm run build && cap sync android && cd android && gradlew assembleDebug",
     "cap:add": "cap add android",
-    "check": "node --check www/app.js && node --check www/db-init.js && node --check vite.config.js",
+    "check": "node --check www/app.js && node --check www/db-init.js && node --check www/hse-data.js && node --check vite.config.js",
     "test": "node --test"
   },
   "dependencies": {
