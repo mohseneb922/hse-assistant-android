@@ -3,12 +3,16 @@ import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
+import { migrateState, validateBackupState } from './hse-data.js';
+
+window.HSE_MIGRATE_STATE = migrateState;
+window.HSE_VALIDATE_BACKUP_STATE = validateBackupState;
 
 window.HSE_DB_MODE = Capacitor.isNativePlatform() ? 'native-sqlite' : 'browser-local';
 window.HSE_PRINTER = Printer;
 const DB_NAME = 'hse_assistant';
 const STORAGE_KEY = 'hse_personal_v1';
-const MODULE_KEYS = ['inc','act','ext','ins','ert','gz','tr','bm','pr','md','cr','pl','mc','pw','mn','rk','pe','wm','ct','rq','cmp','cw','acc','emg','inv','hyg','erg','asn','fac','doc','aud'];
+const MODULE_KEYS = ['inc','act','ext','ins','ert','gz','tr','bm','pr','md','cr','pl','mc','pw','mn','rk','pe','wm','ct','rq','cmp','cw','acc','emg','inv','hyg','erg','asn','fac','doc','aud','logs','kit','drill','meeting'];
 const localDate = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -110,14 +114,16 @@ async function setupSQLite() {
   `);
 
   const stateResult = await db.query('SELECT payload FROM app_state WHERE id = 1');
-  let initialState = stateResult.values?.length ? safeJson(stateResult.values[0].payload) : null;
+  const storedState = stateResult.values?.length ? safeJson(stateResult.values[0].payload) : null;
   const persistedModules = new Map();
-  if (!initialState) {
-    // One-time migration from the previous browser-based version.
-    initialState = safeJson(localStorage.getItem(STORAGE_KEY));
-    if (initialState) await persistState(db, initialState, persistedModules, true);
-  }
-  if (initialState && typeof initialState === 'object' && !Array.isArray(initialState)) {
+  let initialState = storedState || safeJson(localStorage.getItem(STORAGE_KEY));
+  const migratedState = migrateState(initialState || {});
+  const migrationChanged = !initialState || JSON.stringify(migratedState) !== JSON.stringify(initialState);
+  initialState = migratedState;
+  if (migrationChanged) {
+    // Persist schema/data migrations atomically, including new module indexes.
+    await persistState(db, initialState, persistedModules, true);
+  } else {
     for (const module of MODULE_KEYS) {
       persistedModules.set(module, JSON.stringify(Array.isArray(initialState[module]) ? initialState[module] : []));
     }
@@ -125,8 +131,9 @@ async function setupSQLite() {
   return {
     initialState,
     async saveState(payload) {
-      const state = safeJson(payload);
-      if (!state || typeof state !== 'object' || Array.isArray(state)) throw new Error('Invalid application state');
+      const parsed = safeJson(payload);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Invalid application state');
+      const state = migrateState(parsed);
       await persistState(db, state, persistedModules, false);
     },
     async getCounts() {
