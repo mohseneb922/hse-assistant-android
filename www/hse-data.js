@@ -63,6 +63,7 @@ export const DEFAULT_INSPECTION_TEMPLATES = [
   {
     id: "inspection-general",
     name: "بازرسی عمومی محیط کار",
+    frequency: "روزانه",
     departmentIds: [],
     active: true,
     items: [
@@ -76,6 +77,7 @@ export const DEFAULT_INSPECTION_TEMPLATES = [
   {
     id: "inspection-machinery",
     name: "بازرسی ماشین‌آلات و تجهیزات",
+    frequency: "روزانه",
     departmentIds: [],
     active: true,
     items: [
@@ -89,6 +91,7 @@ export const DEFAULT_INSPECTION_TEMPLATES = [
   {
     id: "inspection-warehouse",
     name: "بازرسی انبار و جابجایی بار",
+    frequency: "روزانه",
     departmentIds: [],
     active: true,
     items: [
@@ -102,6 +105,7 @@ export const DEFAULT_INSPECTION_TEMPLATES = [
   {
     id: "inspection-emergency",
     name: "بازرسی تجهیزات و مسیرهای اضطراری",
+    frequency: "روزانه",
     departmentIds: [],
     active: true,
     items: [
@@ -205,6 +209,7 @@ export function migrateState(input) {
     ...item,
     id: String(item.id || `legacy-inspection-${index + 1}`),
     name: String(item.name || "چک‌لیست بدون عنوان"),
+    frequency: String(item.frequency || "روزانه"),
     departmentIds: Array.isArray(item.departmentIds) ? item.departmentIds : [],
     items: Array.isArray(item.items) ? item.items.map(String) : [],
     active: item.active !== false
@@ -226,6 +231,18 @@ export function migrateState(input) {
       legacySource: "aud"
     }));
     state.aud = [];
+  }
+
+  // Split the former combined meeting/drill register without deleting history.
+  if (state.mn.length) {
+    for (const record of state.mn) {
+      const isDrill = String(record?.ty || "").includes("مانور");
+      const target = isDrill ? state.drill : state.meeting;
+      if (!target.some(item => item.id && item.id === record.id)) {
+        target.push({ ...record, legacySource: "mn" });
+      }
+    }
+    state.mn = [];
   }
 
   // Keep old department names referenced by records as inactive history entries.
