@@ -42,6 +42,15 @@ test("legacy audit event records are preserved in the event log", () => {
   assert.equal(state.logs[0].legacySource, "aud");
 });
 
+test("modern audit records are not mistaken for legacy event logs", () => {
+  const state = migrateState({
+    cfg: { version: 1 },
+    aud: [{ id: "audit-1", title: "ممیزی داخلی" }]
+  });
+  assert.equal(state.aud.length, 1);
+  assert.equal(state.logs.length, 0);
+});
+
 test("legacy combined meetings and drills are split while preserving IDs", () => {
   const state = migrateState({
     mn: [
