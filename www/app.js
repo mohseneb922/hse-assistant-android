@@ -117,7 +117,8 @@ const AL=[
  ['pl','آلاینده‌سنجی',function(r){return r.nx},function(r){return r.ag+' – '+(r.pt||'')}],
  ['tr','آموزش',function(r){return r.ex},function(r){return r.nm+' – '+r.c}],
  ['ext','کپسول',function(r){return r.d},function(r){return r.ty+' – '+r.p}],
- ['kit','جعبه کمک‌های اولیه',function(r){return r.expiry||r.review},function(r){return (r.name||'قلم')+' – موجودی '+(r.qty||'0')}]
+ ['kit','انقضای اقلام جعبه',function(r){return r.expiry},function(r){return (r.name||'قلم')+' – موجودی '+(r.qty||'0')}],
+ ['kit','بازبینی اقلام جعبه',function(r){return r.review},function(r){return (r.name||'قلم')+' – بررسی دوره‌ای'}]
 ]
 const al=()=>{const L=[];AL.forEach(([k,t,fd,fl])=>S[k].forEach(r=>{const d=fd(r);if(d&&days(d)<=30)L.push([days(d),t,fl(r)])}));L.sort((a,b)=>a[0]-b[0]);return `<div class='cd ${L.some(x=>x[0]<0)?'bad':L.length?'wr':'ok'}'><b>سررسیدها (گذشته یا تا ۳۰ روز آینده)</b>`+(L.length?L.slice(0,12).map(x=>`<div class='mu'>${x[0]<0?'⛔ '+N(-x[0])+' روز گذشته':'⏰ '+N(x[0])+' روز مانده'} – ${x[1]}: ${esc(x[2])}</div>`).join('')+(L.length>12?`<div class='mu'>و ${N(L.length-12)} مورد دیگر</div>`:''):`<div class='mu'>موردی نزدیک سررسید نیست.</div>`)+`</div>`};
 const MSD=r=>{if(!r.nx&&r.ms){const x=new Date(r.ms);x.setUTCMonth(x.getUTCMonth()+36);r.nx=x.toISOString().slice(0,10)}};
