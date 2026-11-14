@@ -10,7 +10,7 @@ if len(activities) != 1:
 
 activity = activities[0]
 source = activity.read_text(encoding="utf-8")
-package_match = re.search(r"^package\\s+([\\w.]+)\\s*;", source, re.M)
+package_match = re.search(r"^package\s+([\w.]+)\s*;", source, re.M)
 if not package_match:
     raise SystemExit("Could not determine MainActivity Java package")
 package_name = package_match.group(1)
@@ -108,7 +108,7 @@ if "registerPlugin(HSEFileSaverPlugin.class);" not in source:
     if "public class MainActivity" not in source:
         raise SystemExit("MainActivity class declaration not found")
     source = re.sub(
-        r"public class MainActivity extends BridgeActivity\\s*\\{\\s*\\}",
+        r"public class MainActivity extends BridgeActivity\s*\{\s*\}",
         """public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
