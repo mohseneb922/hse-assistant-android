@@ -58,7 +58,7 @@ const BF=()=>[['فرم اعلام حادثه تأمین اجتماعی',()=>bl('
 function fm(i){const b=BF()[i];showRep(b[0],b[1]())}
 const PC=`body{font:13px/1.9 Vazirmatn,Tahoma,sans-serif;color:#000;padding:14px;direction:rtl}h4{margin:12px 0 2px;border-bottom:1px solid #000}.rc{border:1px solid #000;padding:6px 10px;margin:8px 0;page-break-inside:avoid}.mu{color:#444}${SC}@media print{button{display:none}}`;
 function showRep(t,inner,raw){
-  const m=$('#md'),h=raw?inner:`<h2>${esc(t)}</h2><div class='mu'>تاریخ: ${D(T)}</div>${inner}`;
+  const m=$('#md'),h=raw?inner:`<h2>${esc(t)}</h2>${S.cfg.company?.name?`<div class='mu'>شرکت: ${esc(S.cfg.company.name)}</div>`:''}<div class='mu'>تاریخ: ${D(T)}</div>${inner}`;
   m.innerHTML=`<div class='sh'><div class='row no'><button class='b' id='pb'>چاپ / ذخیره PDF</button><button class='b g' id='shareGuide'>راهنمای اشتراک PDF</button><button class='b g' id='xb'>بستن</button></div><p class='mu no'>در پنجره چاپ اندروید، برای ذخیره فایل گزینه «Save as PDF» و برای چاپ کاغذی چاپگر موردنظر را انتخاب کنید.</p><div id='pv' style='background:#fff;color:#000;padding:12px;margin-top:10px;border-radius:6px'>${h}</div></div>`;
   m.style.display='flex';
   $('#xb').onclick=()=>m.style.display='none';
@@ -318,7 +318,7 @@ function printCustomForm(id){
 }
 function printGateForms(){
   const topics=S.cfg.inductionTopics||[];
-  const form=`<h2>فرم ثبت ورود و خروج مراجعه‌کنندگان</h2><div class="mu">تکمیل توسط واحد حراست</div>`+
+  const form=`<h2>فرم ثبت ورود و خروج مراجعه‌کنندگان</h2><div class="mu">شرکت: ${esc(S.cfg.company?.name||'')}</div><div class="mu">تکمیل توسط واحد حراست</div>`+
     ['نام و نام خانوادگی','نوع مراجعه‌کننده (کارمند، پیمانکار، راننده، بازدیدکننده)','شرکت/پیمانکار','شماره شناسایی یا کد پرسنلی','شخص یا واحد میزبان','علت مراجعه','تاریخ و ساعت ورود','تاریخ و ساعت خروج','شماره پلاک خودرو (در صورت نیاز)','توضیحات','نام و امضای مسئول حراست'].map(x=>`<div class="ln"><b>${x}:</b> <span></span></div>`).join('')+
     '<h2>فرم توجیه ایمنی بدو ورود</h2><div class="mu">موارد آموزش‌داده‌شده را علامت بزنید.</div>'+
     topics.map(x=>`<div class="ln">☐ ${esc(x)}</div>`).join('')+
