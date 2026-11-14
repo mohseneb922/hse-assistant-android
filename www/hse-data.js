@@ -132,6 +132,15 @@ export const DEFAULT_SETTINGS = {
   trainingCourses: DEFAULT_TRAINING_COURSES,
   inspectionTemplates: DEFAULT_INSPECTION_TEMPLATES,
   signCategories: DEFAULT_SIGN_CATEGORIES,
+  qualificationTypes: makeItems("qualification", ["صلاحیت شغلی", "آموزش تخصصی", "گواهینامه اپراتوری", "گواهی فنی", "آموزش بدو ورود", "سایر"]),
+  inductionTopics: [
+    "معرفی خطرات عمومی محیط کار",
+    "مسیرهای تردد مجاز و مناطق ممنوعه",
+    "تجهیزات حفاظت فردی موردنیاز",
+    "علائم هشدار و ایمنی",
+    "نحوه اعلام حادثه و شرایط اضطراری",
+    "مسیر خروج و نقطه تجمع اضطراری"
+  ],
   signs: [],
   forms: []
 };
@@ -179,7 +188,7 @@ export function migrateState(input) {
     };
     for (const key of [
       "departments", "activities", "wasteTypes", "trainingCourses",
-      "inspectionTemplates", "signCategories", "signs", "forms"
+      "inspectionTemplates", "signCategories", "qualificationTypes", "inductionTopics", "signs", "forms"
     ]) {
       if (!Array.isArray(state.cfg[key])) state.cfg[key] = clone(DEFAULT_SETTINGS[key]);
     }
@@ -203,6 +212,8 @@ export function migrateState(input) {
   state.cfg.signCategories = Array.isArray(state.cfg.signCategories)
     ? state.cfg.signCategories.map(String)
     : [...DEFAULT_SIGN_CATEGORIES];
+  state.cfg.qualificationTypes = normalizeCatalog(state.cfg.qualificationTypes, DEFAULT_SETTINGS.qualificationTypes);
+  state.cfg.inductionTopics = Array.isArray(state.cfg.inductionTopics) ? state.cfg.inductionTopics.map(String) : [...DEFAULT_SETTINGS.inductionTopics];
   state.cfg.signs = Array.isArray(state.cfg.signs) ? state.cfg.signs : [];
   state.cfg.forms = Array.isArray(state.cfg.forms) ? state.cfg.forms : [];
 
