@@ -37,6 +37,7 @@ M.gz={n:'گزارش رسمی',f:[['_h','مشخصات کارگاه'],['wn','نا�
 t:r=>'گزارش حادثه – '+(r.nm||'بدون نام'),s:r=>D(r.dt)+' – '+(r.res||'')+(r.stt=='ارسال شد'?'':' – مهلت (تقریبی): '+D(dl(r))+' ('+N(left(r))+' روز)'),w:r=>r.stt!='ارسال شد'&&r.dt&&left(r)<=0?'مهلت ۳ روز اداری رسیده یا گذشته':'',x:r=>`<button class='b g' data-i='${r.id}' onclick='cp(this.dataset.i)'>متن آماده</button><button class='b g' data-i='${r.id}' onclick='pr1(this.dataset.i)'>چاپ فرم</button><button class='b g' data-i='${r.id}' onclick='g2b(this.dataset.i)'>گزارش بیمه</button>`};
 function cp(id){const r=S.gz.find(x=>x.id==id),t=M.gz.f.filter(f=>f[0]!='_h').map(f=>f[1]+': '+(f[2]=='date'||f[2]=='dt'?D(r[f[0]]):f[2]=='datetime-local'?DT(r[f[0]]):(r[f[0]]||'—'))).join(String.fromCharCode(10));modal('متن آماده برای کپی',`<textarea id='ct' rows='10' style='direction:rtl;font-size:13px' readonly>${esc(t)}</textarea>`,()=>{$('#ct').select();document.execCommand('copy')});$('#sb').textContent='کپی'}
 const TT={inc:'گزارش حوادث و شبه‌حوادث',gz:'گزارش‌های رسمی اعلام حادثه',ins:'گزارش بازرسی‌ها',act:'اقدامات اصلاحی',ext:'فهرست کپسول‌ها',ert:'گروه واکنش فوری و آموزش‌ها'};
+TT.eqp='مدیریت تجهیزات ایمنی';TT.rk='ارزیابی ریسک';TT.pr='شناسنامه HSE کارکنان';
 const rec=(k,r)=>`<div class='rc'>${M[k].f.map(f=>f[0]=='_h'?`<h4>${f[1]}</h4>`:r[f[0]]?`<div><b>${f[1]}:</b> ${f[2]=='img'?`<br><img src='${r[f[0]]}' style='max-width:60%'>`:esc(f[2]=='date'||f[2]=='dt'?D(r[f[0]]):f[2]=='datetime-local'?DT(r[f[0]]):r[f[0]])}</div>`:'').join('')}</div>`;
 const sec=k=>{const b=k=='ins'?S.ins.map(r=>`<div class='rc'>${esc(r.a)} – ${D(r.d)} – ${N(r.f)} مورد نامطابق${r.w?' – بازرس: '+esc(r.w):''}${(r.it||[]).map(x=>'<br>'+(x[1]=='0'?'✗ ':'✓ ')+esc(x[0])).join('')}${r.n?'<br>توضیحات: '+esc(r.n):''}</div>`).join(''):k=='ert'?act().map(m=>`<div class='rc'><b>${esc(m.n)}</b> – ${m.ro} – ${esc(m.ph||'')}<br>${TR().map(x=>x+': '+(m.tr[x]?D(m.tr[x]):'ندیده')).join('<br>')}</div>`).join(''):S[k].map(r=>rec(k,r)).join('');return `<h3 style='margin:16px 0 4px'>${TT[k]}</h3>`+(b||`<div class='mu'>موردی ثبت نشده.</div>`)};
 const SC=`.sgs{display:grid;gap:12px}.sgn{border:3px solid #000;border-radius:10px;padding:10px;text-align:center;background:#fff;color:#000;page-break-inside:avoid}.sgn .si{width:70%;max-width:260px}.st1{font-weight:700}.st2{color:#333;font-size:12px}.big .sgn{min-height:225mm;display:flex;flex-direction:column;justify-content:center;align-items:center;page-break-after:always}.big .st1{font-size:34px;line-height:1.5}.big .st2{font-size:20px}.big .si{width:80%;max-width:none}.mid{grid-template-columns:1fr 1fr}.mid .st1{font-size:18px}.sml{grid-template-columns:1fr 1fr 1fr}.sml .st1{font-size:12px}.sml .sgn{padding:5px}.ln{margin:8px 0}.ln span{display:inline-block;border-bottom:1px dotted #000;width:60%}.ck{width:100%;border-collapse:collapse}.ck td,.ck th{border:1px solid #000;padding:6px}`;
@@ -184,7 +185,9 @@ M.fac.n='ثبت اقدامات کمک‌های اولیه';
 TT.cmp='صلاحیت و گواهینامه‌ها';TT.cw='نیروهای پیمانکار';TT.acc='فرم‌های حراست و تردد';TT.emg='شرایط اضطراری';TT.inv='تحقیق و ریشه‌یابی حوادث';TT.hyg='پایش عوامل زیان‌آور';TT.erg='ارگونومی';TT.asn='کنترل پیش از انتصاب';TT.fac='ثبت اقدامات کمک‌های اولیه';TT.doc='مدارک و دستورالعمل‌ها';TT.aud='ممیزی HSE';TT.logs='سوابق رویدادهای قدیمی';TT.kit='موجودی جعبه کمک‌های اولیه';TT.drill='مانورها';TT.meeting='جلسات HSE';
 TT.pr='فهرست پرسنل';TT.md='آزمایشات ادواری طب کار';TT.cr='گواهی‌های جرثقیل و لیفتراک';TT.pl='آلاینده‌سنجی و پایش عوامل زیان‌آور';
 const AL=[
- ['eqp','تجهیز ایمنی',r=>r.nextInspection||r.maintenance||r.expiry,r=>(r.name||'تجهیز')+' – '+(r.location||'')],
+ ['eqp','بازرسی تجهیزات',r=>r.nextInspection,r=>(r.name||'تجهیز')+' – '+(r.location||'')],
+ ['eqp','سرویس تجهیزات',r=>r.maintenance,r=>(r.name||'تجهیز')+' – '+(r.location||'')],
+ ['eqp','انقضای تجهیزات',r=>r.expiry,r=>(r.name||'تجهیز')+' – '+(r.location||'')],
  ['pe','تحویل PPE',r=>r.nx,r=>(r.nm||'')+' – '+(r.it||'')],
  ['md','طب کار',function(r){return r.nx},function(r){return r.nm+' – '+r.ex}],
  ['cr','گواهی',function(r){return r.nx},function(r){return r.ty+' '+(r.eq||'')+' – '+r.kd}],
@@ -205,11 +208,11 @@ function alertsPage(){
  (rows.map(x=>'<div class="cd '+(x.days<0||x.title.includes('ریسک')?'bad':'wr')+'"><b>'+esc(x.title)+'</b><div class=mu>'+esc(x.label)+'</div><div class=mu>'+(x.date?D(x.date):'نیازمند بررسی')+(x.days<0?' – '+N(-x.days)+' روز گذشته':x.days>0?' – '+N(x.days)+' روز مانده':'')+'</div><div class=row><button class="b g" data-k="'+x.key+'" onclick="go(this.dataset.k)">مشاهده سوابق</button></div></div>').join('')||'<div class=cd ok>در حال حاضر هشدار ثبت‌شده‌ای وجود ندارد.</div>')+
  '<div class=row><button class=b onclick="exportHSEExcel()">خروجی گزارش‌ها برای Excel</button></div>';
 }
-function csvCell(value){let v=String(value??'');if(/^\\s*[=+@-]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'}
+function csvCell(value){let v=String(value??'');if(/^\s*[=+@-]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'}
 async function exportHSEExcel(){
  const rows=[['بخش','شناسه','عنوان فیلد','مقدار']];
  for(const k of MK){const meta=M[k];if(!meta)continue;for(const r of S[k]||[]){for(const field of meta.f||[]){if(field[0]==='_h'||field[2]==='img')continue;const value=r[field[0]];if(value===undefined||value===null||value==='')continue;rows.push([meta.n,r.id,field[1],String(value)])}}}
- const csv='\\uFEFF'+rows.map(row=>row.map(csvCell).join(',')).join('\\r\\n');
+ const csv='\uFEFF'+rows.map(row=>row.map(csvCell).join(',')).join('\r\n');
  const filename='HSE-Management-Report-'+T+'.csv';
  try{if(window.HSE_FILES?.exportFile){const result=await window.HSE_FILES.exportFile(filename,csv,'text/csv;charset=utf-8');if(result?.cancelled)return}else{const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}nt('فایل گزارش قابل بازشدن در Excel آماده شد.')}catch(e){console.error(e);nt('خروجی فایل انجام نشد؛ فضای ذخیره‌سازی را بررسی کنید.')}
 }
