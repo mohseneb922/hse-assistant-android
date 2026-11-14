@@ -239,6 +239,29 @@ export function migrateState(input) {
     state.aud = [];
   }
 
+  // The former emergency screen mixed response plans and drill reports.
+  if (legacySchema && state.emg.length) {
+    const remainingPlans = [];
+    for (const record of state.emg) {
+      if (record?.d || record?.rs || record?.pc) {
+        const result = record.rs === "اجرا شد" ? "موفق" : record.rs === "نیازمند اصلاح" ? "نیازمند بهبود" : record.rs === "لغو شد" ? "ناموفق" : "";
+        state.drill.push({
+          ...record,
+          scenario: record.ty ? record.ty + (record.pt ? " – " + record.pt : "") : record.sc || "مانور قدیمی",
+          objective: record.sc || "",
+          area: record.pt || "",
+          participants: record.pc || "",
+          findings: record.ac || "",
+          result,
+          legacySource: "emg"
+        });
+      } else {
+        remainingPlans.push(record);
+      }
+    }
+    state.emg = remainingPlans;
+  }
+
   // Split the former combined meeting/drill register without deleting history.
   if (legacySchema && state.mn.length) {
     for (const record of state.mn) {
