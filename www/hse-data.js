@@ -220,9 +220,6 @@ export function migrateState(input) {
   // Keep old department names referenced by records as inactive history entries.
   const knownNames = new Set(state.cfg.departments.map(item => item.name));
   const historicalNames = new Set();
-  for (const record of state.ins) {
-    if (record?.a) historicalNames.add(String(record.a));
-  }
   for (const record of state.pr) {
     if (record?.un) historicalNames.add(String(record.un));
   }
