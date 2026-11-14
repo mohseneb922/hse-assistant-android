@@ -186,6 +186,114 @@ function ertForm(id){const r=S.ert.find(x=>x.id==id)||{tr:{}};
 modal(id?'ویرایش عضو':'عضو جدید',[['n','نام و نام خانوادگی','text'],['ro','نقش','sel',RO],['ph','تلفن','tel']].map(f=>fh(f,r)).join('')+'<div class="mu">آموزش‌های دیده‌شده (تیک بزنید و تاریخ بدهید):</div>'+TR.map((t,i)=>`<div class="tr"><input type="checkbox" id="c${i}"${r.tr&&r.tr[t]?' checked':''}> <span style="flex:1">${t}</span>${window.HSE_PERSIAN_CALENDAR.field('training_'+i,(r.tr&&r.tr[t])||T,'date','t'+i)}</div>`).join(''),()=>{const v=rd(),tr={};TR.forEach((t,i)=>{if($('#c'+i).checked)tr[t]=$('#t'+i).dataset.iso});
 const o={n:v.n,ro:v.ro,ph:v.ph,tr};id?Object.assign(r,o):S.ert.push({id:uid(),a:true,...o})})}
 function rep(id){const r=S.ert.find(x=>x.id==id);modal('جایگزینی '+esc(r.n),fh(['n1','نام نفر جایگزین','text'],{})+fh(['p1','تلفن (اختیاری)','tel'],{}),()=>{const v=rd();if(!v.n1)return;r.a=false;r.rp=v.n1+' ('+D(T)+')';S.ert.push({id:uid(),a:true,n:v.n1,ro:r.ro,ph:v.p1||'',tr:{}})})}
+
+const CFG_GROUPS=[
+  ['departments','بخش‌های شرکت'],
+  ['activities','انواع فعالیت'],
+  ['trainingCourses','دوره‌های آموزشی'],
+  ['inspectionTemplates','چک‌لیست‌های بازرسی'],
+  ['wasteTypes','انواع پسماند'],
+  ['qualificationTypes','انواع صلاحیت'],
+  ['inductionTopics','موضوعات آموزش بدو ورود'],
+  ['signs','تابلوهای ایمنی'],
+  ['forms','فرم‌های اختصاصی']
+];
+const cfgList=kind=>S.cfg[kind]||[];
+const cfgTitle=(kind,item)=>kind==='trainingCourses'?item.title:kind==='inductionTopics'?item:kind==='signs'?item.title:item.name||item.title||'بدون عنوان';
+function cfgRenderList(kind){
+  const rows=cfgList(kind);
+  return (rows.map((item,index)=>{
+    const active=typeof item==='string'||item.active!==false;
+    const title=cfgTitle(kind,item);
+    let detail='';
+    if(kind==='trainingCourses')detail=(item.departmentIds||[]).length?(item.departmentIds.map(id=>S.cfg.departments.find(d=>d.id===id)?.name||'بخش بایگانی‌شده').join('، ')):'همه بخش‌ها';
+    if(kind==='inspectionTemplates')detail=(item.frequency||'روزانه')+' – '+(item.items||[]).length+' مورد';
+    if(kind==='signs')detail=item.category||'بدون دسته';
+    if(kind==='forms')detail=item.description||'';
+    return `<div class="cd ${active?'':'wr'}"><b>${esc(title)}</b><div class="mu">${esc(detail|| (active?'فعال':'غیرفعال'))}</div><div class="row"><button class="b g" data-kind="${kind}" data-id="${typeof item==='string'?index:item.id}" onclick="cfgEdit(this.dataset.kind,this.dataset.id)">ویرایش</button>${kind==='inductionTopics'||kind==='signCategories'?'':`<button class="b g" data-kind="${kind}" data-id="${typeof item==='string'?index:item.id}" onclick="cfgToggle(this.dataset.kind,this.dataset.id)">${active?'غیرفعال‌سازی':'فعال‌سازی'}</button>`}</div></div>`;
+  }).join(''))||'<p class="mu">هنوز موردی تعریف نشده است.</p>';
+}
+function cfgEditor(kind,id){
+  const rows=cfgList(kind);
+  const index=kind==='inductionTopics'?Number(id):-1;
+  let item=kind==='inductionTopics'?rows[index]:rows.find(x=>x.id===id);
+  const isEdit=!!item;
+  const depNames=(item?.departmentIds||[]).map(depId=>S.cfg.departments.find(d=>d.id===depId)?.name).filter(Boolean).join('، ');
+  let html='';
+  if(['departments','activities','wasteTypes','qualificationTypes'].includes(kind)){
+    html=fh(['name','عنوان','text'],{name:item?.name||''});
+  }else if(kind==='trainingCourses'){
+    html=fh(['title','عنوان دوره','text'],{title:item?.title||''})+
+      fh(['depNames','بخش‌های مخاطب (نام بخش‌ها با ویرگول جدا شوند؛ خالی = همه بخش‌ها)','area'],{depNames});
+  }else if(kind==='inspectionTemplates'){
+    html=fh(['name','عنوان چک‌لیست','text'],{name:item?.name||''})+
+      fh(['depNames','بخش‌های مرتبط (نام بخش‌ها با ویرگول؛ خالی = همه بخش‌ها)','area'],{depNames})+
+      fh(['frequency','تناوب اجرا','sel',['روزانه','هفتگی','ماهانه','فصلی','سالانه','موردی']],{frequency:item?.frequency||'روزانه'})+
+      fh(['itemsText','موارد چک‌لیست (هر مورد در یک خط)','area'],{itemsText:(item?.items||[]).join('\n')});
+  }else if(kind==='signs'){
+    html=fh(['title','عنوان تابلو','text'],{title:item?.title||''})+
+      fh(['category','نوع هشدار','sel',()=>S.cfg.signCategories],{category:item?.category||S.cfg.signCategories[0]})+
+      fh(['icon','نماد یا ایموجی (اختیاری)','text'],{icon:item?.icon||'⚠️'})+
+      fh(['description','توضیح تکمیلی','text'],{description:item?.description||''});
+  }else if(kind==='forms'){
+    html=fh(['title','عنوان فرم','text'],{title:item?.title||''})+
+      fh(['description','توضیح فرم','area'],{description:item?.description||''})+
+      fh(['fieldsText','فیلدهای فرم (هر فیلد در یک خط)','area'],{fieldsText:(item?.fields||[]).join('\n')});
+  }else if(kind==='inductionTopics'){
+    html=fh(['title','موضوع آموزش بدو ورود','text'],{title:item||''});
+  }else return;
+  modal((isEdit?'ویرایش ':'افزودن ')+CFG_GROUPS.find(x=>x[0]===kind)[1],html,()=>{
+    const v=rd();
+    const idValue=isEdit?(item.id||''):'cfg-'+uid();
+    const names=(v.depNames||'').split(/[،,\n]/).map(x=>x.trim()).filter(Boolean);
+    const departmentIds=names.map(name=>S.cfg.departments.find(d=>d.name===name)?.id).filter(Boolean);
+    let next;
+    if(['departments','activities','wasteTypes','qualificationTypes'].includes(kind))next={id:idValue,name:v.name,active:true};
+    else if(kind==='trainingCourses')next={id:idValue,title:v.title,departmentIds,active:true,validityMonths:item?.validityMonths||0};
+    else if(kind==='inspectionTemplates')next={id:idValue,name:v.name,departmentIds,frequency:v.frequency||'روزانه',items:(v.itemsText||'').split('\n').map(x=>x.trim()).filter(Boolean),active:true};
+    else if(kind==='signs')next={id:idValue,title:v.title,category:v.category,icon:v.icon||'⚠️',description:v.description||'',active:true};
+    else if(kind==='forms')next={id:idValue,title:v.title,description:v.description||'',fields:(v.fieldsText||'').split('\n').map(x=>x.trim()).filter(Boolean),active:true};
+    else if(kind==='inductionTopics'){
+      if(isEdit)S.cfg.inductionTopics[index]=v.title;
+      else S.cfg.inductionTopics.push(v.title);
+      return;
+    }
+    if(isEdit)Object.assign(item,next);
+    else rows.push(next);
+  });
+}
+function cfgEdit(kind,id){cfgEditor(kind,id)}
+function cfgToggle(kind,id){
+  if(kind==='inductionTopics'||kind==='signCategories')return;
+  const item=cfgList(kind).find(x=>x.id===id);
+  if(!item)return;
+  item.active=item.active===false;
+  sv();R();
+}
+function cfgPage(){
+  return '<h2>تعاریف پایه و تنظیمات شرکت</h2><p class="mu">اطلاعات این قسمت برای شرکت قابل تعریف است. غیرفعال‌سازی به‌جای حذف فیزیکی انجام می‌شود تا سوابق قبلی حفظ شوند.</p>'+
+  '<div class="cd"><b>نام شرکت</b>'+ `<div class="mu">${esc(S.cfg.company?.name||'هنوز ثبت نشده')}</div><div class="row"><button class="b g" onclick="cfgCompany()">ویرایش مشخصات شرکت</button></div></div>`+
+  CFG_GROUPS.map(([kind,title])=>`<h3>${title}</h3><div class="row"><button class="b" data-kind="${kind}" onclick="cfgAdd(this.dataset.kind)">+ افزودن ${title}</button></div>${cfgRenderList(kind)}`).join('');
+}
+function cfgAdd(kind){cfgEditor(kind,null)}
+function cfgCompany(){
+  modal('مشخصات شرکت',fh(['name','نام شرکت','text'],{name:S.cfg.company?.name||''}),()=>{const v=rd();S.cfg.company={...(S.cfg.company||{}),name:v.name||''}});
+}
+function printCustomForm(id){
+  const item=S.cfg.forms.find(x=>x.id===id);if(!item)return;
+  const html=`<h2>${esc(item.title)}</h2><p>${esc(item.description||'')}</p>${(item.fields||[]).map(field=>`<div class="ln"><b>${esc(field)}:</b> <span></span></div>`).join('')}`;
+  showRep(item.title,html);
+}
+function printGateForms(){
+  const topics=S.cfg.inductionTopics||[];
+  const form=`<h2>فرم ثبت ورود و خروج مراجعه‌کنندگان</h2><div class="mu">تکمیل توسط واحد حراست</div>`+
+    ['نام و نام خانوادگی','نوع مراجعه‌کننده (کارمند، پیمانکار، راننده، بازدیدکننده)','شرکت/پیمانکار','شماره شناسایی یا کد پرسنلی','شخص یا واحد میزبان','علت مراجعه','تاریخ و ساعت ورود','تاریخ و ساعت خروج','شماره پلاک خودرو (در صورت نیاز)','توضیحات','نام و امضای مسئول حراست'].map(x=>`<div class="ln"><b>${x}:</b> <span></span></div>`).join('')+
+    '<h2>فرم توجیه ایمنی بدو ورود</h2><div class="mu">موارد آموزش‌داده‌شده را علامت بزنید.</div>'+
+    topics.map(x=>`<div class="ln">☐ ${esc(x)}</div>`).join('')+
+    ['نام آموزش‌دهنده','نام آموزش‌گیرنده','تاریخ و ساعت آموزش','تأیید دریافت آموزش و امضای مراجعه‌کننده','امضای آموزش‌دهنده'].map(x=>`<div class="ln"><b>${x}:</b> <span></span></div>`).join('');
+  showRep('فرم‌های حراست و آموزش بدو ورود',form);
+}
+
 const V={
 cmp:()=>'<h2>صلاحیت و گواهینامه‌ها</h2><p class=mu>وضعیت مدارک را ثبت و تاریخ اعتبار را پیگیری کنید. این فهرست به‌تنهایی تأیید صلاحیت خودکار نیست.</p>'+ls('cmp'),
 cw:()=>'<h2>نیروهای پیمانکار</h2><p class=mu>فقط وضعیت کلی صلاحیت و آموزش را ثبت کنید؛ تشخیص پزشکی و یادداشت محرمانه را وارد نکنید.</p>'+ls('cw'),
