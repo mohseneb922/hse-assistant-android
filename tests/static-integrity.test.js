@@ -71,8 +71,8 @@ test('incident reports support separately attached Social Security PDF and image
   assert.match(app, /attachIncidentSocialSecurityFiles/);
   assert.match(app, /viewIncidentSocialSecurityAttachments/);
   assert.match(app, /removeIncidentSocialSecurityAttachment/);
-  assert.match(app, /application\\/pdf/);
-  assert.match(app, /image\\/jpeg/);
-  assert.match(app, /r\\.ssAttachments\\.map/);
+  assert.ok(app.includes("'application/pdf'"));
+  assert.ok(app.includes("'image/jpeg'"));
+  assert.ok(app.includes('r.ssAttachments.map'));
   assert.match(app, /SQLite remains authoritative/);
 });
