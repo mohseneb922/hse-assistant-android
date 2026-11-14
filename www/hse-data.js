@@ -153,7 +153,7 @@ const ARRAY_KEYS = [
   "inc", "act", "ext", "ins", "ert", "gz", "tr", "bm", "pr", "md",
   "cr", "pl", "mc", "pw", "mn", "rk", "pe", "wm", "ct", "rq",
   "cmp", "cw", "acc", "emg", "inv", "hyg", "erg", "asn", "fac",
-  "doc", "aud", "logs", "kit", "drill", "meeting"
+  "doc", "aud", "logs", "kit", "drill", "meeting", "eqp"
 ];
 
 const clone = value => JSON.parse(JSON.stringify(value));
