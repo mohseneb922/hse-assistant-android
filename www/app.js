@@ -111,7 +111,14 @@ M.meeting={n:'جلسه HSE',af:r=>{if(r.actions&&!r.ca){r.ca=1;S.act.unshift({id
 M.fac.n='ثبت اقدامات کمک‌های اولیه';
 TT.cmp='صلاحیت و گواهینامه‌ها';TT.cw='نیروهای پیمانکار';TT.acc='فرم‌های حراست و تردد';TT.emg='شرایط اضطراری';TT.inv='تحقیق و ریشه‌یابی حوادث';TT.hyg='پایش عوامل زیان‌آور';TT.erg='ارگونومی';TT.asn='کنترل پیش از انتصاب';TT.fac='ثبت اقدامات کمک‌های اولیه';TT.doc='مدارک و دستورالعمل‌ها';TT.aud='ممیزی HSE';TT.logs='سوابق رویدادهای قدیمی';TT.kit='موجودی جعبه کمک‌های اولیه';TT.drill='مانورها';TT.meeting='جلسات HSE';
 TT.pr='فهرست پرسنل';TT.md='آزمایشات ادواری طب کار';TT.cr='گواهی‌های جرثقیل و لیفتراک';TT.pl='آلاینده‌سنجی و پایش عوامل زیان‌آور';
-const AL=[['md','طب کار',r=>r.nx,r=>r.nm+' – '+r.ex],['cr','گواهی',r=>r.nx,r=>r.ty+' '+(r.eq||'')+' – '+r.kd],['pl','آلاینده‌سنجی',r=>r.nx,r=>r.ag+' – '+(r.pt||'')],['tr','آموزش',r=>r.ex,r=>r.nm+' – '+r.c],['ext','کپسول',r=>r.d,r=>r.ty+' – '+r.p],['kit','جعبه کمک‌های اولیه',r=>r.expiry||r.review,r=>(r.name||'قلم')+' – موجودی '+(r.qty||'0)]];
+const AL=[
+ ['md','طب کار',function(r){return r.nx},function(r){return r.nm+' – '+r.ex}],
+ ['cr','گواهی',function(r){return r.nx},function(r){return r.ty+' '+(r.eq||'')+' – '+r.kd}],
+ ['pl','آلاینده‌سنجی',function(r){return r.nx},function(r){return r.ag+' – '+(r.pt||'')}],
+ ['tr','آموزش',function(r){return r.ex},function(r){return r.nm+' – '+r.c}],
+ ['ext','کپسول',function(r){return r.d},function(r){return r.ty+' – '+r.p}],
+ ['kit','جعبه کمک‌های اولیه',function(r){return r.expiry||r.review},function(r){return (r.name||'قلم')+' – موجودی '+(r.qty||'0')}]
+]
 const al=()=>{const L=[];AL.forEach(([k,t,fd,fl])=>S[k].forEach(r=>{const d=fd(r);if(d&&days(d)<=30)L.push([days(d),t,fl(r)])}));L.sort((a,b)=>a[0]-b[0]);return `<div class='cd ${L.some(x=>x[0]<0)?'bad':L.length?'wr':'ok'}'><b>سررسیدها (گذشته یا تا ۳۰ روز آینده)</b>`+(L.length?L.slice(0,12).map(x=>`<div class='mu'>${x[0]<0?'⛔ '+N(-x[0])+' روز گذشته':'⏰ '+N(x[0])+' روز مانده'} – ${x[1]}: ${esc(x[2])}</div>`).join('')+(L.length>12?`<div class='mu'>و ${N(L.length-12)} مورد دیگر</div>`:''):`<div class='mu'>موردی نزدیک سررسید نیست.</div>`)+`</div>`};
 const MSD=r=>{if(!r.nx&&r.ms){const x=new Date(r.ms);x.setUTCMonth(x.getUTCMonth()+36);r.nx=x.toISOString().slice(0,10)}};
 M.mc={n:'ماده',af:MSD,f:[['nm','نام ماده','text'],['cas','شماره CAS','text'],['sp','تأمین‌کننده','text'],['lc','محل نگهداری','text'],['qt','موجودی (با واحد)','text'],['hz','دسته خطر','sel',['قابل اشتعال','اکسیدکننده یا پراکسید','سمی','خورنده','گرد و غبار قابل انفجار','واکنش‌پذیر یا حساس به حرارت','کم‌خطر','سایر']],['ic','ناسازگار با (جدا نگه داشته شود)','text'],['fx','روش اطفا طبق MSDS','text'],['ms','تاریخ MSDS','dt'],['nx','موعد بازبینی MSDS (خالی بماند: ۳ سال)','dt'],['ph','عکس برچسب','img']],t:r=>r.nm,s:r=>(r.hz||'')+' – '+(r.lc||'')+(r.qt?' – '+r.qt:''),w:r=>dw(r.nx)};
