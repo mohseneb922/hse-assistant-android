@@ -6,6 +6,7 @@ const app = await readFile(new URL('../www/app.js', import.meta.url), 'utf8');
 const db = await readFile(new URL('../www/db-init.js', import.meta.url), 'utf8');
 const data = await readFile(new URL('../www/hse-data.js', import.meta.url), 'utf8');
 const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+const fileSaver = await readFile(new URL('../scripts/configure-hse-file-saver.py', import.meta.url), 'utf8');
 
 function listFrom(source, expression) {
   const match = source.match(expression);
@@ -51,11 +52,14 @@ test('restore waits for persistence and can roll back browser storage on failure
   assert.match(app, /await sv\(\);m\.style\.display='none'/);
 });
 
-test('Capacitor Android, SQLite, and Android Save As dependencies are declared', () => {
-  for (const name of ['@capacitor/core','@capacitor/android','@capacitor-community/sqlite','@odion-cloud/capacitor-mediastore']) {
+test('Capacitor Android, SQLite, and native Storage Access Framework backup are configured', () => {
+  for (const name of ['@capacitor/core','@capacitor/android','@capacitor-community/sqlite']) {
     assert.ok(pkg.dependencies[name], `missing dependency ${name}`);
   }
-  assert.match(db, /CapacitorMediaStore\.saveFileAs/);
+  assert.match(db, /registerPlugin\('HSEFileSaver'\)/);
+  assert.match(db, /HSEFileSaver\.saveFile/);
+  assert.match(fileSaver, /Intent\.ACTION_CREATE_DOCUMENT/);
+  assert.match(fileSaver, /registerPlugin\(HSEFileSaverPlugin\.class\)/);
   assert.ok(!pkg.dependencies['@capacitor/filesystem'], 'obsolete filesystem dependency should stay removed');
   assert.ok(!pkg.dependencies['@capacitor/share'], 'obsolete share dependency should stay removed');
 });
