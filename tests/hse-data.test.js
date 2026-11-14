@@ -51,6 +51,16 @@ test("modern audit records are not mistaken for legacy event logs", () => {
   assert.equal(state.logs.length, 0);
 });
 
+test("legacy emergency drill records move to the drill register", () => {
+  const state = migrateState({
+    emg: [{ id: "emg-drill", ty: "حریق", pt: "سالن", d: "2026-10-03", pc: "12", rs: "اجرا شد" }]
+  });
+  assert.equal(state.emg.length, 0);
+  assert.equal(state.drill[0].id, "emg-drill");
+  assert.equal(state.drill[0].result, "موفق");
+  assert.equal(state.drill[0].area, "سالن");
+});
+
 test("legacy combined meetings and drills are split while preserving IDs", () => {
   const state = migrateState({
     mn: [
@@ -61,6 +71,7 @@ test("legacy combined meetings and drills are split while preserving IDs", () =>
   assert.equal(state.mn.length, 0);
   assert.equal(state.drill[0].id, "old-drill");
   assert.equal(state.meeting[0].id, "old-meeting");
+  assert.equal(state.meeting[0].title, "جلسه کمیته");
   assert.equal(state.drill[0].legacySource, "mn");
 });
 
