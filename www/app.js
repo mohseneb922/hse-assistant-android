@@ -106,7 +106,7 @@ M.doc={n:'مدارک و دستورالعمل‌های HSE',f:[['ty','نوع مد
 M.aud={n:'ممیزی HSE',af:r=>{if(r.result==='عدم انطباق'&&r.nc&&!r.ca){r.ca=1;S.act.unshift({id:uid(),createdAt:T,src:'ممیزی',sid:r.id,s:'عدم انطباق ممیزی: '+(r.title||''),cause:r.nc,ac:'رفع عدم انطباق و ارائه شواهد',r:r.owner||'',d:r.deadline||'',st:'باز',eff:'در انتظار بررسی'})}},f:[['title','عنوان ممیزی','text'],['scope','دامنه و محدوده ممیزی','area'],['d','تاریخ ممیزی','date'],['auditor','ممیز یا تیم ممیزی','text'],['criteria','استاندارد، الزام یا چک‌لیست مرجع','area'],['result','نتیجه کلی','sel',['منطبق','عدم انطباق','نیازمند بهبود','در حال انجام']],['evidence','شواهد و مستندات بررسی‌شده','area'],['nc','عدم انطباق‌ها و فرصت‌های بهبود','area'],['owner','مسئول پیگیری','text'],['deadline','مهلت پیگیری','date'],['followup','نتیجه پیگیری و راستی‌آزمایی','area'],['status','وضعیت ممیزی','sel',['برنامه‌ریزی‌شده','در حال اجرا','در انتظار پیگیری','بسته‌شده']]],t:r=>(r.title||'ممیزی')+' – '+(r.scope||''),s:r=>D(r.d)+' – '+(r.auditor||'')+' – '+(r.status||''),w:r=>r.result=='عدم انطباق'?'عدم انطباق ثبت‌شده':r.status!='بسته‌شده'&&r.deadline&&r.deadline<T?'پیگیری ممیزی معوق':''};
 M.logs={n:'سوابق رویدادهای قدیمی',f:[['ty','نوع رویداد','text'],['md','بخش یا فرآیند','text'],['d','تاریخ','datetime-local'],['by','ثبت‌کننده','text'],['ds','شرح','area'],['rs','مرجع','text']],t:r=>(r.ty||'رویداد')+' – '+(r.md||''),s:r=>DT(r.d)+' – '+(r.by||'')};
 M.kit={n:'قلم جعبه کمک‌های اولیه',f:[['name','نام قلم','text'],['cat','گروه قلم','sel',['پانسمان و بانداژ','شست‌وشو','حفاظت فردی','احیا و امداد','ابزار','سایر']],['qty','موجودی','text'],['unit','واحد','text'],['added','تاریخ ورود/تأمین','date'],['expiry','تاریخ انقضا','date'],['min','حداقل موجودی','text'],['review','تاریخ بررسی بعدی','date'],['condition','وضعیت','sel',['سالم','نیازمند بررسی','مصرف‌شده','منقضی']],['storage','محل نگهداری','text'],['notes','توضیحات','area']],t:r=>(r.name||'قلم')+' – '+(r.cat||''),s:r=>'موجودی: '+(r.qty||'—')+' '+(r.unit||'')+' – انقضا: '+D(r.expiry),w:r=>r.condition=='منقضی'||(r.expiry&&r.expiry<T)?'منقضی':(+r.qty||0)<(+r.min||0)?'نیازمند تأمین':r.condition=='نیازمند بررسی'?'نیازمند بررسی':r.expiry&&days(r.expiry)<=30?'نزدیک انقضا':''};
-M.drill={n:'مانور',f:[['scenario','سناریوی اضطراری','text'],['d','تاریخ اجرا','date'],['objective','هدف مانور','area'],['area','محدوده اجرا','text'],['participants','تعداد/گروه شرکت‌کنندگان','text'],['time','زمان تخلیه یا واکنش','text'],['result','نتیجه','sel',['موفق','نیازمند بهبود','ناموفق']],['findings','نقاط قوت و ضعف','area'],['action','اقدامات پس از مانور','area'],['owner','مسئول پیگیری','text'],['deadline','مهلت','date']],t:r=>(r.scenario||'مانور')+' – '+(r.area||''),s:r=>D(r.d)+' – '+(r.result||''),w:r=>r.result!='موفق'?'نیازمند پیگیری':r.deadline&&r.deadline<T?'اقدام معوق':''};
+M.drill={n:'مانور',f:[['scenario','سناریوی اضطراری','sel',()=>S.emg.map(r=>(r.ty||'سناریو')+' – '+(r.pt||''))],['d','تاریخ اجرا','date'],['objective','هدف مانور','area'],['area','محدوده اجرا','text'],['participants','تعداد/گروه شرکت‌کنندگان','text'],['time','زمان تخلیه یا واکنش','text'],['result','نتیجه','sel',['موفق','نیازمند بهبود','ناموفق']],['findings','نقاط قوت و ضعف','area'],['action','اقدامات پس از مانور','area'],['owner','مسئول پیگیری','text'],['deadline','مهلت','date']],t:r=>(r.scenario||'مانور')+' – '+(r.area||''),s:r=>D(r.d)+' – '+(r.result||''),w:r=>r.result!='موفق'?'نیازمند پیگیری':r.deadline&&r.deadline<T?'اقدام معوق':''};
 M.meeting={n:'جلسه HSE',f:[['title','عنوان جلسه','text'],['ty','نوع جلسه','sel',['کمیته حفاظت فنی و بهداشت کار','جلسه ایمنی کوتاه (Toolbox)','جلسه هماهنگی پیمانکاران','جلسه بررسی حادثه','سایر']],['d','تاریخ جلسه','date'],['attendees','حاضرین','area'],['agenda','دستور جلسه','area'],['minutes','مصوبات و صورت‌جلسه','area'],['actions','اقدامات و مسئول پیگیری','area'],['deadline','مهلت پیگیری','date']],t:r=>(r.title||r.ty||'جلسه')+' – '+D(r.d),s:r=>(r.ty||'')+' – '+(r.attendees||''),w:r=>r.deadline&&r.deadline<T?'پیگیری جلسه معوق':''};
 M.fac.n='ثبت اقدامات کمک‌های اولیه';
 TT.cmp='صلاحیت و گواهینامه‌ها';TT.cw='نیروهای پیمانکار';TT.acc='فرم‌های حراست و تردد';TT.emg='شرایط اضطراری';TT.inv='تحقیق و ریشه‌یابی حوادث';TT.hyg='پایش عوامل زیان‌آور';TT.erg='ارگونومی';TT.asn='کنترل پیش از انتصاب';TT.fac='ثبت اقدامات کمک‌های اولیه';TT.doc='مدارک و دستورالعمل‌ها';TT.aud='ممیزی HSE';TT.logs='سوابق رویدادهای قدیمی';TT.kit='موجودی جعبه کمک‌های اولیه';TT.drill='مانورها';TT.meeting='جلسات HSE';
@@ -263,7 +263,8 @@ function cfgEditor(kind,id){
     const v=rd();
     const idValue=isEdit?(item.id||''):'cfg-'+uid();
     const names=(v.depNames||'').split(/[،,\n]/).map(x=>x.trim()).filter(Boolean);
-    const departmentIds=names.map(name=>S.cfg.departments.find(d=>d.name===name)?.id).filter(Boolean);
+    const departmentIds=names.map(name=>S.cfg.departments.find(d=>d.name===name&&d.active!==false)?.id).filter(Boolean);
+    if(names.length!==departmentIds.length)throw new Error('نام یک یا چند بخش در فهرست بخش‌های فعال وجود ندارد. ابتدا بخش را در تعاریف پایه ایجاد یا فعال کنید.');
     let next;
     if(['departments','activities','wasteTypes','qualificationTypes'].includes(kind))next={id:idValue,name:v.name,active:true};
     else if(kind==='trainingCourses')next={id:idValue,title:v.title,departmentIds,active:true,validityMonths:item?.validityMonths||0};
@@ -351,7 +352,7 @@ function setIns(){
     const template=inspectionTemplates().find(x=>x.id===a.value);
     if(!template){$('#il').innerHTML='<p class="mu">ابتدا در تعاریف پایه یک چک‌لیست فعال تعریف کنید.</p>';return}
     const selectedDep=departmentIdByName(dep?.value||'');
-    if(template.departmentIds?.length&&selectedDep&&!template.departmentIds.includes(selectedDep)){
+    if(template.departmentIds?.length&&(!selectedDep||!template.departmentIds.includes(selectedDep))){
       $('#il').innerHTML='<p class="mu">این چک‌لیست برای بخش انتخاب‌شده تعریف نشده است.</p>';return;
     }
     $('#il').innerHTML=template.items.map((x,i)=>`<div class="cd"><div>${esc(x)}</div><div class="row"><label class="tr"><input type="radio" name="q${i}" value="1" checked> مطابق</label><label class="tr"><input type="radio" name="q${i}" value="0"> نامطابق</label></div></div>`).join('');
@@ -362,6 +363,7 @@ async function saveIns(){
   const template=inspectionTemplates().find(x=>x.id===$('#ia').value);
   if(!template)return alert('چک‌لیست معتبر انتخاب نشده است.');
   const depName=$('#idp')?.value||'',depId=departmentIdByName(depName),id=uid();
+  if(template.departmentIds?.length&&(!depId||!template.departmentIds.includes(depId)))return alert('این چک‌لیست برای بخش انتخاب‌شده تعریف نشده است.');
   const answers=template.items.map((x,i)=>[x,document.querySelector(`input[name=q${i}]:checked`)?.value||'1']);
   const failed=answers.filter(x=>x[1]==='0');
   S.ins.unshift({id,createdAt:T,a:template.name,templateId:template.id,department:depName,departmentId:depId,d:T,f:failed.length,w:$('#iw').value,n:$('#in').value,it:answers});
