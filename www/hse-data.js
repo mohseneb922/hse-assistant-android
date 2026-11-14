@@ -369,3 +369,56 @@ export function validateBackupState(input) {
   if (data.hr !== undefined && (!data.hr || typeof data.hr !== "object" || Array.isArray(data.hr))) return null;
   return data;
 }
+
+
+/**
+ * Merge an imported backup into the current state without deleting local data.
+ * Local scalar values win on conflicts. Arrays are unioned; records with
+ * colliding IDs but different content are retained under a stable new ID.
+ */
+export function mergeBackupState(currentInput, importedInput) {
+  const current = currentInput && typeof currentInput === "object" ? clone(currentInput) : {};
+  const imported = importedInput && typeof importedInput === "object" ? importedInput : {};
+  const sameWithoutId = (a, b) => {
+    const left = { ...a }; const right = { ...b };
+    delete left.id; delete right.id;
+    return JSON.stringify(left) === JSON.stringify(right);
+  };
+  const merge = (local, incoming) => {
+    if (Array.isArray(local) && Array.isArray(incoming)) {
+      const result = clone(local);
+      for (const item of incoming) {
+        if (item && typeof item === "object" && !Array.isArray(item)) {
+          if (result.some(existing => existing && typeof existing === "object" &&
+              (existing.id && item.id ? sameWithoutId(existing, item) : JSON.stringify(existing) === JSON.stringify(item)))) continue;
+          const id = item.id == null ? "" : String(item.id);
+          const collision = id && result.some(existing => existing && String(existing.id) === id);
+          if (collision) {
+            let suffix = 1;
+            let nextId = `${id}-imported-${suffix}`;
+            const used = new Set(result.filter(Boolean).map(existing => String(existing.id || "")));
+            while (used.has(nextId)) nextId = `${id}-imported-${++suffix}`;
+            result.push({ ...clone(item), id: nextId });
+          } else {
+            result.push(clone(item));
+          }
+        } else if (!result.some(existing => JSON.stringify(existing) === JSON.stringify(item))) {
+          result.push(clone(item));
+        }
+      }
+      return result;
+    }
+    if (local && incoming && typeof local === "object" && typeof incoming === "object" &&
+        !Array.isArray(local) && !Array.isArray(incoming)) {
+      const result = clone(local);
+      for (const [key, value] of Object.entries(incoming)) {
+        result[key] = Object.prototype.hasOwnProperty.call(result, key)
+          ? merge(result[key], value)
+          : clone(value);
+      }
+      return result;
+    }
+    return local === undefined ? clone(incoming) : clone(local);
+  };
+  return merge(current, imported);
+}
