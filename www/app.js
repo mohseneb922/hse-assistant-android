@@ -431,8 +431,49 @@ asn:()=>'<h2>کنترل پیش از انتصاب به کار</h2><p class=mu>ا�
 fac:()=>'<h2>پرونده کمک‌های اولیه</h2><p class=mu>اطلاعات پزشکی تشخیصی یا جزئیات حساس را وارد نکنید؛ این بخش برای ثبت حداقلی رویداد و ارجاع است.</p>'+ls('fac'),
 doc:()=>'<h2>مدارک و دستورالعمل‌های HSE</h2>'+ls('doc'),
 aud:()=>'<h2>ممیزی HSE</h2><p class=mu>ابتدا دامنه و معیار ممیزی (الزام قانونی، استاندارد یا دستورالعمل داخلی) را مشخص کنید؛ سپس شواهد را بررسی و نتیجه را ثبت کنید. عدم انطباق‌ها و فرصت‌های بهبود را بنویسید، مسئول و مهلت پیگیری تعیین کنید و نتیجه راستی‌آزمایی را بعداً تکمیل کنید. در صورت انتخاب «عدم انطباق» و ثبت شرح آن، برنامه یک اقدام اصلاحی مرتبط می‌سازد.</p>'+ls('aud'),
-home(){const ac=S.act.filter(a=>a.st!='بسته'),ov=ac.filter(a=>a.d&&a.d<T),ex=S.ext.filter(e=>e.d&&e.d<T),jm=window.HSE_PERSIAN_CALENDAR.jalaliMonthFromGregorian(T),rg=window.HSE_PERSIAN_CALENDAR.monthRange(jm),mo=S.inc.filter(i=>i.d&&i.d>=rg.start&&i.d<rg.end&&i.k==='حادثه'),e=act(),gap=e.filter(m=>!m.tr||!Object.entries(m.tr).some(([course,date])=>course.includes('کمک‌های اولیه')&&date));
-return`<h2>خلاصه وضعیت</h2>${window.HSE_DB_ERROR?`<div class='cd bad'><b>هشدار ذخیره‌سازی</b><div class='mu'>پایگاه داده SQLite راه‌اندازی نشده است. اطلاعات فعلاً فقط در حافظه مرورگر ذخیره می‌شود؛ تا رفع خطا، از ثبت اطلاعات حساس و اتکا به ذخیره‌سازی برنامه خودداری کنید.</div></div>`:window.HSE_DB_MODE==='browser-local'?`<div class='cd wr'><b>حالت مرورگری</b><div class='mu'>در پیش‌نمایش مرورگر، SQLite بومی اندروید فعال نیست و اطلاعات در حافظه مرورگر ذخیره می‌شود. نسخه APK باید روی گوشی آزمایش شود.</div></div>`:''}${al()}${rqc()}${bkc()}<div class="grid"><div class="st"><b>${N(ac.length)}</b>اقدام باز</div><div class="st"><b class="${ov.length?'bad-t':''}">${N(ov.length)}</b>اقدام معوق</div><div class="st"><b>${N(mo.length)}</b>حادثه این ماه</div><div class="st"><b class="${ex.length?'bad-t':''}">${N(ex.length)}</b>کپسول سررسیدشده</div><div class="st"><b>${N(e.length)}</b>عضو گروه واکنش</div><div class="st"><b class="${gap.length?'wr-t':''}">${N(gap.length)}</b>بدون آموزش کمک‌های اولیه</div></div>`},
+home(){
+  const jm=window.HSE_PERSIAN_CALENDAR.jalaliMonthFromGregorian(T),m=monthSummary(jm);
+  const open=S.act.filter(a=>a.st!=='بسته'),overdue=open.filter(a=>a.d&&a.d<T);
+  const expiredExt=S.ext.filter(x=>x.d&&x.d<T);
+  const due=AX(),trend=kr(),maxIncident=Math.max(1,...trend.map(x=>Number(x[1])+Number(x[2])));
+  const riskCount=S.rk.length,people=S.pr.length,equipment=S.ext.length+S.cr.length+S.kit.length;
+  const alertRows=[
+    ...overdue.map(a=>({title:a.s||'اقدام اصلاحی بدون عنوان',meta:'اقدام اصلاحی معوق – '+(a.r||'مسئول مشخص نشده'),action:'act'})),
+    ...expiredExt.map(x=>({title:x.ty||'کپسول آتش‌نشانی',meta:'سررسید شارژ گذشته – '+(x.p||'محل نامشخص'),action:'ext'})),
+    ...due.slice(0,8).map(x=>({title:x[2],meta:x[1]+' – '+(x[0]<0?'سررسید گذشته':'سررسید نزدیک'),action:x[1].includes('کپسول')?'ext':'act'}))
+  ].slice(0,10);
+  return `<h2>داشبورد مدیریتی HSE</h2>
+  <p class="mu">نمای کلی عملکرد و موارد نیازمند پیگیری بر اساس اطلاعات ثبت‌شده در همین دستگاه</p>
+  ${window.HSE_DB_ERROR?`<div class='cd bad'><b>هشدار ذخیره‌سازی</b><div class='mu'>پایگاه داده SQLite راه‌اندازی نشده است. اطلاعات فعلاً فقط در حافظه مرورگر ذخیره می‌شود؛ تا رفع خطا، از اتکا به ذخیره‌سازی برنامه خودداری کنید.</div></div>`:window.HSE_DB_MODE==='browser-local'?`<div class='cd wr'><b>حالت مرورگری</b><div class='mu'>در پیش‌نمایش مرورگر، SQLite بومی اندروید فعال نیست؛ نسخه APK باید روی گوشی آزمایش شود.</div></div>`:''}
+  ${al()}${rqc()}${bkc()}
+  <div class="cd"><b>شاخص‌های کلیدی این ماه – ${esc(ml(jm))}</b><div class="grid">
+    <div class="st"><b>${N(m.accidents.length)}</b>حادثه</div>
+    <div class="st"><b>${N(m.nearMisses.length)}</b>شبه‌حادثه</div>
+    <div class="st"><b>${N(open.length)}</b>اقدام باز</div>
+    <div class="st"><b class="${overdue.length?'bad-t':''}">${N(overdue.length)}</b>اقدام معوق</div>
+    <div class="st"><b>${N(m.inspections.length)}</b>بازرسی این ماه</div>
+    <div class="st"><b>${N(m.training.length)}</b>دوره آموزشی این ماه</div>
+    <div class="st"><b>${N(m.permits.length)}</b>مجوز کار این ماه</div>
+    <div class="st"><b>${N(m.audits.length)}</b>ممیزی این ماه</div>
+  </div></div>
+  <h3>روند شش‌ماهه حوادث و شبه‌حوادث</h3>
+  <div class="cd">${trend.map(x=>{const total=Number(x[1])+Number(x[2]),w=Math.round(total/maxIncident*100);return `<div style="margin:9px 0"><div class="row" style="justify-content:space-between"><b>${esc(x[0])}</b><span class="mu">حادثه: ${N(x[1])} | شبه‌حادثه: ${N(x[2])}</span></div><div style="height:10px;background:var(--line,#ddd);border-radius:8px;overflow:hidden"><div style="height:100%;width:${w}%;background:var(--accent,#2878bd);border-radius:8px"></div></div></div>`}).join('')}</div>
+  <h3>وضعیت کلی سامانه</h3>
+  <div class="grid">
+    <div class="st"><b>${N(people)}</b>پرسنل ثبت‌شده</div>
+    <div class="st"><b>${N(riskCount)}</b>ارزیابی ریسک ثبت‌شده</div>
+    <div class="st"><b>${N(equipment)}</b>رکورد تجهیزات</div>
+    <div class="st"><b>${N(S.aud.length)}</b>ممیزی ثبت‌شده</div>
+    <div class="st"><b>${N(S.drill.length)}</b>مانور ثبت‌شده</div>
+    <div class="st"><b>${N(S.meeting.length)}</b>جلسه HSE ثبت‌شده</div>
+  </div>
+  <h3>هشدارها و موارد نیازمند پیگیری</h3>
+  ${alertRows.length?alertRows.map(x=>`<div class="cd wr"><b>${esc(x.title)}</b><div class="mu">${esc(x.meta)}</div><div class="row"><button class="b g" data-k="${x.action}" onclick="go(this.dataset.k)">مشاهده سوابق</button></div></div>`).join(''):`<div class="cd ok">در داده‌های فعلی مورد سررسیدشده‌ای شناسایی نشد.</div>`}
+  <h3>دسترسی سریع به بخش‌ها</h3>
+  <div class="row">${[['rk','مدیریت ریسک'],['pr','شناسنامه کارکنان'],['pe','تجهیزات حفاظت فردی'],['ext','کپسول‌ها'],['act','اقدامات اصلاحی'],['kp','گزارش‌های مدیریتی']].map(x=>`<button class="b g" data-k="${x[0]}" onclick="go(this.dataset.k)">${x[1]}</button>`).join('')}</div>
+  <div class="cd"><b>توجه به صحت شاخص‌ها</b><div class="mu">این داشبورد از سوابق ثبت‌شده محاسبه می‌شود. نرخ‌های مبتنی بر ساعت کار فقط در صورت ثبت ساعت کار واقعی معتبر هستند. تعداد ارزیابی ریسک، پرسنل و تجهیزات نیز تعداد رکوردهای ثبت‌شده است، نه تأیید انطباق یا ایمنی آن‌ها.</div></div>`
+},
+
 tr:()=>'<h2>ثبت آموزش‌ها</h2><p class=mu>عنوان دوره‌ها در «تعاریف پایه» تعریف می‌شوند و به بخش‌های مخاطب متصل هستند. ابتدا بخش را انتخاب کنید تا دوره‌های مرتبط نمایش داده شوند؛ سپس فرد، مدرس، مدت، تاریخ، مدرک حضور و موعد تمدید را ثبت کنید.</p>'+ls('tr'),rq:()=>'<h2>درخواست‌ها و گزارش‌های سرپرستان و اپراتورها</h2><p class=mu>فرم خام را از بخش مستقل «فرم‌های خام و چاپی» چاپ کنید و به سرپرستان بدهید؛ پس از دریافت، اطلاعات را اینجا ثبت و پیگیری کنید. خرابی و موارد فوری خودکار اقدام اصلاحی می‌سازند.</p>'+ls('rq'),mc:()=>'<h2>مواد شیمیایی و MSDS</h2>'+ls('mc'),pw:()=>'<h2>مجوزهای کار</h2><p class=mu>کار گرم، فضای بسته، برق، ارتفاع، حفاری و تعمیر ماشین‌آلات را قبل از شروع ثبت و بعد از پایان «بسته شد» کنید.</p>'+ls('pw'),mn:()=>'<h2>مانورها و جلسات</h2>'+ls('mn'),rk:()=>'<h2>ارزیابی ریسک</h2>'+ls('rk'),pe:()=>'<h2>تحویل وسایل حفاظت فردی</h2>'+ls('pe'),wm:()=>'<h2>پسماند و محیط‌زیست</h2>'+ls('wm'),ct:()=>'<h2>پیمانکاران و بازدیدکنندگان</h2>'+ls('ct'),
 kp(){const jm=window.HSE_PERSIAN_CALENDAR.jalaliMonthFromGregorian(T);return `<h2>شاخص‌ها و گزارش ماهانه</h2><label>ماه گزارش (شمسی)${window.HSE_PERSIAN_CALENDAR.field('hm',jm,'month','hm')}</label><div id='metricContainer'>`+metricSummaryHtml(jm)+`</div><label>ساعت کار کل کارکنان در آن ماه (از آمار واقعی شرکت)<input id='hh' type='number' min='0' value='${S.hr['j'+jm]??S.hr[window.HSE_PERSIAN_CALENDAR.monthRange(jm).start.slice(0,7)]??''}'></label><div class='row'><button class='b g' onclick='shr()'>ذخیره ساعت کار</button><button class='b' onclick='kpr()'>گزارش ماهانه (چاپ)</button></div><h3>روند شش‌ماهه شاخص‌های حوادث</h3>`+ktb(kr())+`<p class='mu'>تعداد حوادث، شبه‌حوادث، بازرسی‌ها، آموزش‌ها، مجوزها، ممیزی‌ها، مانورها و جلسات از سوابق ثبت‌شده خوانده می‌شوند. ساعت کار و روزهای ازدست‌رفته باید دقیق و واقعی وارد شوند. نرخ‌ها بر مبنای یک میلیون ساعت کار محاسبه می‌شوند.</p>`},
 sr:()=>`<h2>جستجو</h2><label>عبارت<input id='q' oninput='sq()' placeholder='نام فرد، ماده، تجهیز...'></label><div id='qr'></div>`,
