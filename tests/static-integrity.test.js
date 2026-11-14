@@ -64,3 +64,15 @@ test('Capacitor Android, SQLite, and native Storage Access Framework backup are 
   assert.ok(!pkg.dependencies['@capacitor/filesystem'], 'obsolete filesystem dependency should stay removed');
   assert.ok(!pkg.dependencies['@capacitor/share'], 'obsolete share dependency should stay removed');
 });
+
+
+test('incident reports support separately attached Social Security PDF and image documents', () => {
+  assert.match(app, /پیوست فرم تأمین اجتماعی/);
+  assert.match(app, /attachIncidentSocialSecurityFiles/);
+  assert.match(app, /viewIncidentSocialSecurityAttachments/);
+  assert.match(app, /removeIncidentSocialSecurityAttachment/);
+  assert.match(app, /application\\/pdf/);
+  assert.match(app, /image\\/jpeg/);
+  assert.match(app, /r\\.ssAttachments\\.map/);
+  assert.match(app, /SQLite remains authoritative/);
+});
