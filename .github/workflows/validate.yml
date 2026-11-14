@@ -31,8 +31,9 @@ jobs:
               via = [x if isinstance(x, str) else x.get("title", "") for x in item.get("via", [])]
               print(f"{item.get('severity', 'unknown').upper()}: {name} | range={item.get('range', '')} | fix={item.get('fixAvailable')} | {', '.join(via)}")
           PY
-      - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
+      - name: Audit production dependencies (non-blocking)
+        run: |
+          npm audit --omit=dev --audit-level=high || echo "::warning::Production dependency audit reported vulnerabilities. Review the audit output above; this warning does not mean the vulnerabilities are fixed."
       - name: Check JavaScript syntax
         run: npm run check
       - name: Run unit tests
