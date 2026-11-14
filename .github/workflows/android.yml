@@ -41,13 +41,16 @@ jobs:
       - name: Build web application
         run: npm run build
 
-      - name: Copy application script
+      - name: Copy application scripts
         run: |
           test -f www/app.js
+          test -f www/persian-calendar.js
           mkdir -p dist
           cp www/app.js dist/app.js
+          cp www/persian-calendar.js dist/persian-calendar.js
           test -s dist/app.js
-          echo "app.js successfully copied to dist"
+          test -s dist/persian-calendar.js
+          echo "app.js and persian-calendar.js successfully copied to dist"
 
       - name: Add Android platform
         run: npx cap add android
