@@ -361,6 +361,25 @@ function menu(){const m=$('#md');m.innerHTML=`<div class='sh'><h3>همه بخش�
 if(S.pin)lock();
 function nt(m){let e=$('#ts');if(!e){document.body.insertAdjacentHTML('beforeend',`<div id='ts' style='display:none;position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:30;background:#14202b;color:#fff;padding:12px 14px;border-radius:10px;text-align:center'></div>`);e=$('#ts')}e.textContent=m;e.style.display='block';clearTimeout(nt.t);nt.t=setTimeout(()=>{e.style.display='none'},5000)}
 window.alert=nt;
+let lastBackPress=0;
+if(window.HSE_APP?.addListener){
+  window.HSE_APP.addListener('backButton',async()=>{
+    const modalOpen=$('#md')?.style.display==='flex';
+    const now=Date.now();
+    if(modalOpen){
+      lastBackPress=0;
+      nt('فرم باز است؛ برای ثبت از «ذخیره» و برای انصراف از «انصراف» استفاده کنید. برای خروج ابتدا فرم را ببندید.');
+      return;
+    }
+    if(now-lastBackPress<=2000){
+      lastBackPress=0;
+      try{await window.HSE_APP.exitApp()}catch(e){console.error('App exit failed',e)}
+      return;
+    }
+    lastBackPress=now;
+    nt('برای خروج از برنامه، دکمه برگشت را یک بار دیگر ظرف ۲ ثانیه فشار دهید. برای بازگشت یا انصراف از عملیات، از دکمه‌های داخل صفحه استفاده کنید.');
+  });
+}
 function cf(m,ok,lb){modal('تأیید',`<p>${m}</p>`,ok);$('#sb').textContent=lb||'بله، حذف شود'}
 function delE(id){cf('حذف شود؟',()=>{S.ert=S.ert.filter(x=>x.id!=id)})}
 function R(){$('#nv').innerHTML=QT.map(k=>TB.find(t=>t[0]==k)).concat(QT.includes(tab)?[]:[TB.find(t=>t[0]==tab)]).map(t=>`<button class='${t[0]==tab?'on':''}' data-k='${t[0]}' onclick='go(this.dataset.k)'>${t[1]}</button>`).join('')+`<button onclick='menu()'>☰ همه بخش‌ها</button>`;$('#v').innerHTML=(TT[tab]||tab=='home'?`<div class='row'><button class='b g' onclick='pr(tab)'>🖨 چاپ / ذخیره PDF</button></div>`:'')+V[tab]();setIns();const hm=$('#hm');if(hm)hm.onchange=hmc}
