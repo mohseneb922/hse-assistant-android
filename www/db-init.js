@@ -9,7 +9,8 @@ import { migrateState, validateBackupState } from './hse-data.js';
 window.HSE_MIGRATE_STATE = migrateState;
 window.HSE_VALIDATE_BACKUP_STATE = validateBackupState;
 
-window.HSE_DB_MODE = Capacitor.isNativePlatform() ? 'native-sqlite' : 'browser-local';
+window.HSE_IS_NATIVE = Capacitor.isNativePlatform();
+window.HSE_DB_MODE = window.HSE_IS_NATIVE ? 'native-sqlite' : 'browser-local';
 window.HSE_APP = App;
 window.HSE_PRINTER = Printer;
 const DB_NAME = 'hse_assistant';
