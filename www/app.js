@@ -226,7 +226,7 @@ function cfgRenderList(kind){
     if(kind==='inspectionTemplates')detail=(item.frequency||'روزانه')+' – '+(item.items||[]).length+' مورد';
     if(kind==='signs')detail=item.category||'بدون دسته';
     if(kind==='forms')detail=item.description||'';
-    return `<div class="cd ${active?'':'wr'}"><b>${esc(title)}</b><div class="mu">${esc(detail|| (active?'فعال':'غیرفعال'))}</div><div class="row"><button class="b g" data-kind="${kind}" data-id="${typeof item==='string'?index:item.id}" onclick="cfgEdit(this.dataset.kind,this.dataset.id)">ویرایش</button>${kind==='inductionTopics'||kind==='signCategories'?'':`<button class="b g" data-kind="${kind}" data-id="${typeof item==='string'?index:item.id}" onclick="cfgToggle(this.dataset.kind,this.dataset.id)">${active?'غیرفعال‌سازی':'فعال‌سازی'}</button>`}</div></div>`;
+    return `<div class="cd ${active?'':'wr'}"><b>${esc(title)}</b><div class="mu">${esc(detail|| (active?'فعال':'غیرفعال'))}</div><div class="row"><button class="b g" data-kind="${kind}" data-id="${typeof item==='string'?index:item.id}" onclick="cfgEdit(this.dataset.kind,this.dataset.id)">ویرایش</button>${kind==='inductionTopics'||kind==='signCategories'?`<button class="b g" data-kind="${kind}" data-id="${index}" onclick="cfgRemoveString(this.dataset.kind,this.dataset.id)">حذف</button>`:`<button class="b g" data-kind="${kind}" data-id="${typeof item==='string'?index:item.id}" onclick="cfgToggle(this.dataset.kind,this.dataset.id)">${active?'غیرفعال‌سازی':'فعال‌سازی'}</button>`}</div></div>`;
   }).join(''))||'<p class="mu">هنوز موردی تعریف نشده است.</p>';
 }
 function cfgEditor(kind,id){
@@ -285,6 +285,16 @@ function cfgEditor(kind,id){
   });
 }
 function cfgEdit(kind,id){cfgEditor(kind,id)}
+function cfgRemoveString(kind,id){
+  const index=Number(id);
+  if(kind==='signCategories'){
+    const category=S.cfg.signCategories[index];
+    if(S.cfg.signs.some(sign=>sign.category===category))return alert('ابتدا تابلوهای این دسته را به دسته دیگری منتقل کنید.');
+  }
+  if(kind==='inductionTopics'||kind==='signCategories'){
+    S.cfg[kind].splice(index,1);sv();R();
+  }
+}
 function cfgToggle(kind,id){
   if(kind==='inductionTopics'||kind==='signCategories')return;
   const item=cfgList(kind).find(x=>x.id===id);
