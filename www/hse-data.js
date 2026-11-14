@@ -251,6 +251,42 @@ export function migrateState(input) {
     state.mn = [];
   }
 
+  // Keep legacy catalog values available as inactive history entries.
+  if (legacySchema) {
+    const appendLegacy = (catalog, key, values, idPrefix) => {
+      const known = new Set(state.cfg[catalog].map(item => item[key]));
+      let index = 1;
+      for (const raw of values) {
+        const value = String(raw || "").trim();
+        if (!value || known.has(value)) continue;
+        state.cfg[catalog].push({ id: `legacy-${idPrefix}-${index++}`, [key]: value, active: false, legacy: true });
+        known.add(value);
+      }
+    };
+    appendLegacy("activities", "name", [
+      ...state.pw.map(r => r.ty), ...state.asn.map(r => r.ac)
+    ], "activity");
+    appendLegacy("wasteTypes", "name", state.wm.map(r => r.ty), "waste");
+    appendLegacy("trainingCourses", "title", state.tr.map(r => r.c), "course");
+    appendLegacy("qualificationTypes", "name", state.cmp.map(r => r.ty), "qualification");
+    const knownTemplates = new Set(state.cfg.inspectionTemplates.map(item => item.name));
+    let templateIndex = 1;
+    for (const record of state.ins) {
+      const name = String(record?.a || "").trim();
+      if (!name || knownTemplates.has(name)) continue;
+      state.cfg.inspectionTemplates.push({
+        id: `legacy-inspection-${templateIndex++}`,
+        name,
+        frequency: "موردی",
+        departmentIds: [],
+        items: [],
+        active: false,
+        legacy: true
+      });
+      knownTemplates.add(name);
+    }
+  }
+
   // Keep old department names referenced by records as inactive history entries.
   const knownNames = new Set(state.cfg.departments.map(item => item.name));
   const historicalNames = new Set();
