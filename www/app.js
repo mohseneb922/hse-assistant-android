@@ -65,7 +65,7 @@ function showRep(t,inner,raw){
   const openPrint=async()=>{
     const html='<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(t)+'</title><style>@page{size:A4;margin:12mm}'+PC+'html,body{background:#fff!important;color:#000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Tahoma,Vazirmatn,sans-serif}#pv{width:100%}table{width:100%;border-collapse:collapse}tr,td,th{page-break-inside:avoid}</style></head><body><div id="pv">'+$('#pv').innerHTML+'</div></body></html>';
     try{
-      if(window.HSE_PRINTER?.print)await window.HSE_PRINTER.print({content:html,name:'HSE-'+T,orientation:'portrait'});
+      if(window.HSE_IS_NATIVE&&window.HSE_PRINTER?.print)await window.HSE_PRINTER.print({content:html,name:'HSE-'+T,orientation:'portrait'});
       else window.print();
     }catch(e){console.error('Native PDF/print failed:',e);alert('باز کردن پنجره چاپ PDF ناموفق بود. لطفاً دوباره تلاش کنید.')}
   };
@@ -379,7 +379,7 @@ if(S.pin)lock();
 function nt(m){let e=$('#ts');if(!e){document.body.insertAdjacentHTML('beforeend',`<div id='ts' style='display:none;position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:30;background:#14202b;color:#fff;padding:12px 14px;border-radius:10px;text-align:center'></div>`);e=$('#ts')}e.textContent=m;e.style.display='block';clearTimeout(nt.t);nt.t=setTimeout(()=>{e.style.display='none'},5000)}
 window.alert=nt;
 let lastBackPress=0;
-if(window.HSE_APP?.addListener){
+if(window.HSE_IS_NATIVE&&window.HSE_APP?.addListener){
   window.HSE_APP.addListener('backButton',async()=>{
     const modalOpen=$('#md')?.style.display==='flex';
     const now=Date.now();
